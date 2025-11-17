@@ -6,17 +6,18 @@ import BlogModel from '@/models/Blog'
 import ContactSubmissionModel from '@/models/ContactSubmission'
 import RateCacheModel from '@/models/RateCache'
 
-const ensureAdmin = (request: NextRequest) => {
+const ensureAdmin = async (request: NextRequest) => {
   const bearer = request.headers.get('authorization')
   const headerToken = bearer?.startsWith('Bearer ') ? bearer.replace('Bearer ', '') : undefined
-  const cookieToken = cookies().get('admin_token')?.value
+  const cookieStore = await cookies()
+  const cookieToken = cookieStore.get('admin_token')?.value
   const payload = verifyAdminToken(headerToken || cookieToken)
   if (!payload) throw new Error('Unauthorized')
 }
 
 export async function GET(request: NextRequest) {
   try {
-    ensureAdmin(request)
+    await ensureAdmin(request)
     await connectToDatabase()
 
     const [blogCounts, contacts, rates] = await Promise.all([

@@ -4,11 +4,12 @@ import BlogModel from '@/models/Blog'
 
 export async function GET(
   _: Request,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
+    const { slug } = await params
     await connectToDatabase()
-    const blog = await BlogModel.findOne({ slug: params.slug, status: 'published' }).lean()
+    const blog = await BlogModel.findOne({ slug, status: 'published' }).lean()
     if (!blog) {
       return NextResponse.json({ message: 'Post not found' }, { status: 404 })
     }

@@ -17,10 +17,11 @@ const updateSchema = z.object({
   seoDescription: z.string().optional()
 })
 
-const ensureAdmin = (request: NextRequest) => {
+const ensureAdmin = async (request: NextRequest) => {
   const bearer = request.headers.get('authorization')
   const headerToken = bearer?.startsWith('Bearer ') ? bearer.replace('Bearer ', '') : undefined
-  const cookieToken = cookies().get('admin_token')?.value
+  const cookieStore = await cookies()
+  const cookieToken = cookieStore.get('admin_token')?.value
   const payload = verifyAdminToken(headerToken || cookieToken)
   if (!payload) {
     throw new Error('Unauthorized')
@@ -30,12 +31,13 @@ const ensureAdmin = (request: NextRequest) => {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    ensureAdmin(request)
+    await ensureAdmin(request)
+    const { id } = await params
     await connectToDatabase()
-    const blog = await BlogModel.findById(params.id).lean()
+    const blog = await BlogModel.findById(id).lean()
     if (!blog) {
       return NextResponse.json({ message: 'Post not found' }, { status: 404 })
     }
@@ -51,16 +53,17 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    ensureAdmin(request)
+    await ensureAdmin(request)
+    const { id } = await params
     const body = await request.json()
     const payload = updateSchema.parse(body)
 
     await connectToDatabase()
     const updated = await BlogModel.findByIdAndUpdate(
-      params.id,
+      id,
       { $set: payload },
       { new: true }
     )
@@ -84,12 +87,13 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    ensureAdmin(request)
+    await ensureAdmin(request)
+    const { id } = await params
     await connectToDatabase()
-    const result = await BlogModel.findByIdAndDelete(params.id)
+    const result = await BlogModel.findByIdAndDelete(id)
 
     if (!result) {
       return NextResponse.json({ message: 'Post not found' }, { status: 404 })

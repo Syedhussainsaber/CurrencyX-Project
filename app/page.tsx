@@ -226,7 +226,7 @@ export default async function Home() {
                     </div>
                   ))
                 : blogs.map((blog) => (
-                    <article key={blog._id} className="rounded-2xl border border-border bg-card overflow-hidden flex flex-col">
+                    <article key={blog._id.toString()} className="rounded-2xl border border-border bg-card overflow-hidden flex flex-col">
                       <div className="p-6 flex-1 space-y-3">
                         <p className="text-xs uppercase tracking-[0.25em] text-primary">
                           {new Date(blog.publishedAt || blog.createdAt).toLocaleDateString()}

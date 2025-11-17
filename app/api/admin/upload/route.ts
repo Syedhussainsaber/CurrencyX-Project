@@ -4,10 +4,11 @@ import { v2 as cloudinary } from 'cloudinary'
 import { verifyAdminToken } from '@/lib/auth'
 import { getServerEnv } from '@/lib/env'
 
-const ensureAdmin = (request: NextRequest) => {
+const ensureAdmin = async (request: NextRequest) => {
   const bearer = request.headers.get('authorization')
   const headerToken = bearer?.startsWith('Bearer ') ? bearer.replace('Bearer ', '') : undefined
-  const cookieToken = cookies().get('admin_token')?.value
+  const cookieStore = await cookies()
+  const cookieToken = cookieStore.get('admin_token')?.value
   const payload = verifyAdminToken(headerToken || cookieToken)
   if (!payload) {
     throw new Error('Unauthorized')
@@ -29,7 +30,7 @@ const configureCloudinary = () => {
 
 export async function POST(request: NextRequest) {
   try {
-    ensureAdmin(request)
+    await ensureAdmin(request)
     configureCloudinary()
 
     const formData = await request.formData()

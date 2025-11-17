@@ -28,13 +28,17 @@ export interface SiteSettingsPayload {
 }
 
 export const getSiteSettings = cache(async (): Promise<SiteSettingsPayload> => {
-  try {
-    await connectToDatabase()
-    let settings = await SiteSettingsModel.findOne().lean()
-    if (!settings) {
-      const created = await SiteSettingsModel.create({})
-      settings = created.toObject()
-    }
+      try {
+        await connectToDatabase()
+        let settings = await SiteSettingsModel.findOne().lean()
+        if (!settings) {
+          const created = await SiteSettingsModel.create({})
+          settings = await SiteSettingsModel.findById(created._id).lean()
+        }
+
+        if (!settings) {
+          throw new Error('Failed to create site settings')
+        }
 
     return {
       id: settings._id.toString(),
@@ -52,8 +56,8 @@ export const getSiteSettings = cache(async (): Promise<SiteSettingsPayload> => {
       metaTitle: settings.metaTitle,
       metaDescription: settings.metaDescription,
       social: settings.social,
-      updatedAt: settings.updatedAt.toISOString(),
-      createdAt: settings.createdAt.toISOString()
+      updatedAt: settings.updatedAt instanceof Date ? settings.updatedAt.toISOString() : new Date(settings.updatedAt).toISOString(),
+      createdAt: settings.createdAt instanceof Date ? settings.createdAt.toISOString() : new Date(settings.createdAt).toISOString()
     }
   } catch (error) {
     console.warn('[site] Database connection failed, using defaults:', error instanceof Error ? error.message : String(error))

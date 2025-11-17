@@ -6,11 +6,12 @@ import { notFound } from 'next/navigation'
 import { formatDate } from '@/lib/utils'
 
 interface BlogPageProps {
-  params: { slug: string }
+  params: Promise<{ slug: string }>
 }
 
 export async function generateMetadata({ params }: BlogPageProps): Promise<Metadata> {
-  const post = await getBlogBySlug(params.slug)
+  const { slug } = await params
+  const post = await getBlogBySlug(slug)
   if (!post) {
     return { title: 'Post not found — CurrencyX Blog' }
   }
@@ -30,7 +31,8 @@ export async function generateMetadata({ params }: BlogPageProps): Promise<Metad
 }
 
 export default async function BlogPostPage({ params }: BlogPageProps) {
-  const post = await getBlogBySlug(params.slug)
+  const { slug } = await params
+  const post = await getBlogBySlug(slug)
   if (!post) {
     notFound()
   }

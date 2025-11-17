@@ -17,10 +17,11 @@ const blogSchema = z.object({
   seoDescription: z.string().optional()
 })
 
-const ensureAdmin = (request: NextRequest) => {
+const ensureAdmin = async (request: NextRequest) => {
   const bearer = request.headers.get('authorization')
   const headerToken = bearer?.startsWith('Bearer ') ? bearer.replace('Bearer ', '') : undefined
-  const cookieToken = cookies().get('admin_token')?.value
+  const cookieStore = await cookies()
+  const cookieToken = cookieStore.get('admin_token')?.value
   const payload = verifyAdminToken(headerToken || cookieToken)
   if (!payload) {
     throw new Error('Unauthorized')
@@ -30,7 +31,7 @@ const ensureAdmin = (request: NextRequest) => {
 
 export async function GET(request: NextRequest) {
   try {
-    ensureAdmin(request)
+    await ensureAdmin(request)
     await connectToDatabase()
     const status = request.nextUrl.searchParams.get('status')
     const query = status ? { status } : {}
@@ -47,7 +48,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    ensureAdmin(request)
+    await ensureAdmin(request)
     const body = await request.json()
     const payload = blogSchema.parse(body)
 

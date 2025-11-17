@@ -9,10 +9,11 @@ const updateSchema = z.object({
   status: z.enum(['new', 'responded'])
 })
 
-const ensureAdmin = (request: NextRequest) => {
+const ensureAdmin = async (request: NextRequest) => {
   const bearer = request.headers.get('authorization')
   const headerToken = bearer?.startsWith('Bearer ') ? bearer.replace('Bearer ', '') : undefined
-  const cookieToken = cookies().get('admin_token')?.value
+  const cookieStore = await cookies()
+  const cookieToken = cookieStore.get('admin_token')?.value
   const payload = verifyAdminToken(headerToken || cookieToken)
   if (!payload) {
     throw new Error('Unauthorized')
@@ -22,7 +23,7 @@ const ensureAdmin = (request: NextRequest) => {
 
 export async function GET(request: NextRequest) {
   try {
-    ensureAdmin(request)
+    await ensureAdmin(request)
     await connectToDatabase()
     const submissions = await ContactSubmissionModel.find().sort({ createdAt: -1 }).lean()
     return NextResponse.json({ data: submissions })
@@ -37,7 +38,7 @@ export async function GET(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
-    ensureAdmin(request)
+    await ensureAdmin(request)
     const body = await request.json()
     const payload = updateSchema.extend({ id: z.string() }).parse(body)
 

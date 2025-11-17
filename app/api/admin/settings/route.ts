@@ -30,10 +30,11 @@ const settingsSchema = z.object({
     .optional()
 })
 
-const ensureAdmin = (request: NextRequest) => {
+const ensureAdmin = async (request: NextRequest) => {
   const bearer = request.headers.get('authorization')
   const headerToken = bearer?.startsWith('Bearer ') ? bearer.replace('Bearer ', '') : undefined
-  const cookieToken = cookies().get('admin_token')?.value
+  const cookieStore = await cookies()
+  const cookieToken = cookieStore.get('admin_token')?.value
   const payload = verifyAdminToken(headerToken || cookieToken)
   if (!payload) {
     throw new Error('Unauthorized')
@@ -52,7 +53,7 @@ const fetchSettings = async () => {
 
 export async function GET(request: NextRequest) {
   try {
-    ensureAdmin(request)
+    await ensureAdmin(request)
     const settings = await fetchSettings()
     return NextResponse.json({ data: settings })
   } catch (error) {
@@ -66,7 +67,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    ensureAdmin(request)
+    await ensureAdmin(request)
     const body = await request.json()
     const payload = settingsSchema.parse(body)
 
