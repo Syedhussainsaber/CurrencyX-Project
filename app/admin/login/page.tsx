@@ -1,85 +1,93 @@
 'use client'
 
-import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+
+const schema = z.object({
+  email: z.string().email('Provide a valid email'),
+  password: z.string().min(8, 'Password must be at least 8 characters')
+})
+
+type LoginForm = z.infer<typeof schema>
 
 export default function AdminLogin() {
   const router = useRouter()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
-
-    try {
-      const res = await fetch('/api/admin/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      })
-
-      const data = await res.json()
-
-      if (res.ok) {
-        // Set auth cookie
-        document.cookie = `admin_token=${data.token}; path=/; secure; samesite=strict`
-        router.push('/admin/dashboard')
-      } else {
-        setError(data.message || 'Login failed')
-      }
-    } catch (err) {
-      console.log("[v0] Login error:", err)
-      setError('An error occurred. Please try again.')
-    } finally {
-      setLoading(false)
+  const [error, setError] = useState<string | null>(null)
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting }
+  } = useForm<LoginForm>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      email: '',
+      password: ''
     }
+  })
+
+  const onSubmit = async (values: LoginForm) => {
+    setError(null)
+    const response = await fetch('/api/admin/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(values)
+    })
+
+    const data = await response.json()
+    if (!response.ok) {
+      setError(data.message || 'Invalid credentials')
+      return
+    }
+    router.push('/admin/dashboard')
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-card to-background flex items-center justify-center p-4">
-      <div className="bg-card border border-border rounded-xl p-8 w-full max-w-md">
-        <h1 className="text-3xl font-bold mb-2">CurrencyX Admin</h1>
-        <p className="text-muted-foreground mb-8">Sign in to manage your platform</p>
+    <div className="min-h-screen bg-gradient-to-br from-background/60 via-card to-background flex items-center justify-center p-4">
+      <div className="bg-card border border-border rounded-2xl p-8 w-full max-w-md shadow-xl">
+        <h1 className="text-3xl font-semibold mb-2">CurrencyX Admin</h1>
+        <p className="text-muted-foreground mb-8">Authenticate to manage content, rates, and settings.</p>
 
         {error && (
-          <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-lg text-sm">
+          <div className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleLogin} className="space-y-4">
-          <input
-            type="email"
-            placeholder="Admin Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="w-full px-4 py-3 bg-input border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="w-full px-4 py-3 bg-input border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-          />
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div>
+            <Input
+              type="email"
+              placeholder="admin@currencyx.com"
+              autoComplete="email"
+              {...register('email')}
+              aria-invalid={!!errors.email}
+            />
+            {errors.email && <p className="text-xs text-destructive mt-1">{errors.email.message}</p>}
+          </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 bg-gradient-to-r from-primary to-accent text-primary-foreground rounded-lg font-semibold hover:opacity-90 transition disabled:opacity-50"
-          >
-            {loading ? 'Signing in...' : 'Sign In'}
-          </button>
+          <div>
+            <Input
+              type="password"
+              placeholder="••••••••"
+              autoComplete="current-password"
+              {...register('password')}
+              aria-invalid={!!errors.password}
+            />
+            {errors.password && <p className="text-xs text-destructive mt-1">{errors.password.message}</p>}
+          </div>
+
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
+            {isSubmitting ? 'Signing in…' : 'Sign In'}
+          </Button>
         </form>
 
         <p className="text-center text-xs text-muted-foreground mt-6">
-          Demo: admin@currencyx.com / password123
+          Set <code>ADMIN_EMAIL</code> and <code>ADMIN_PASSWORD_HASH</code> in your environment.
         </p>
       </div>
     </div>

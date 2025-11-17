@@ -1,155 +1,287 @@
 import Header from '@/components/header'
 import Footer from '@/components/footer'
 import CurrencyConverter from '@/components/currency-converter'
-import { CheckCircle2, TrendingUp, Lock, Zap, Globe, Users } from 'lucide-react'
+import { getSiteSettings } from '@/lib/site'
+import { getPublishedBlogs } from '@/lib/blog'
+import { Globe, Lock, Sparkles, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
 
+export const revalidate = 60
+
 export const metadata = {
-  title: 'CurrencyX - International Money Transfer | Competitive Rates',
-  description: 'Fast, secure money transfers to 150+ countries. Best exchange rates, no hidden fees, 24/7 support.',
+  title: 'Global CurrencyX — Real-Time Currency Converter & FX Intelligence',
+  description:
+    'Convert any currency in real-time, monitor multi-country FX rates, read expert insights, and manage your brand with Global CurrencyX.',
   alternates: {
     canonical: 'https://currencyx.com'
   }
 }
 
-export default function Home() {
+const steps = [
+  {
+    title: 'Create your secure profile',
+    detail: 'KYC-backed onboarding with biometric security.'
+  },
+  {
+    title: 'Pick currencies & send instantly',
+    detail: '300+ corridors with transparent FX spreads.'
+  },
+  {
+    title: 'Track & reconcile in real-time',
+    detail: 'Live notifications, smart alerts, and automated compliance.'
+  }
+]
+
+const whyUs = [
+  {
+    title: 'Live interbank rates',
+    detail: 'Direct connections to tier-1 liquidity pools with <0.25% spread.',
+    icon: TrendingUp
+  },
+  {
+    title: 'Global coverage',
+    detail: 'Support for every ISO-4217 currency and local payout rails in 150+ countries.',
+    icon: Globe
+  },
+  {
+    title: 'Enterprise security',
+    detail: 'Zero-trust infrastructure, SOC2 controls, and audited smart routing.',
+    icon: Lock
+  }
+]
+
+const testimonials = [
+  {
+    name: 'Keisha Adeyemi',
+    role: 'FinOps Lead, Remitly Africa',
+    text: 'CurrencyX reduced our payout latency from 2 days to 12 minutes. The admin dashboard gives crystal clear visibility across markets.'
+  },
+  {
+    name: 'Marco Silva',
+    role: 'Founder, Atlas Payments',
+    text: 'The converter widget and blog CMS let our marketing team ship campaigns without engineering support.'
+  },
+  {
+    name: 'Sofia Kramer',
+    role: 'VP Finance, AeroLogistics',
+    text: 'We trust CurrencyX for treasury hedging because of their live pricing, audit logs, and automated alerts.'
+  }
+]
+
+export default async function Home() {
+  const settings = await getSiteSettings()
+  const blogs = await getPublishedBlogs(3)
+
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'FinancialService',
-    name: 'CurrencyX',
-    description: 'International money transfer service with competitive exchange rates',
+    name: settings.brandName,
+    description: settings.metaDescription,
     url: 'https://currencyx.com',
-    telephone: '+1-800-123-4567',
-    email: 'support@currencyx.com',
-    serviceType: 'MoneyTransfer',
+    telephone: settings.supportPhone,
+    email: settings.supportEmail,
     areaServed: 'Worldwide',
-    priceRange: '$',
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      ratingValue: '4.8',
-      ratingCount: '2500'
-    }
+    currenciesAccepted: 'ALL',
+    priceRange: '$$'
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-      />
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#F4FFF9] via-white to-white">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
       <Header />
 
-      {/* Hero Section */}
-      <section className="relative py-16 md:py-24 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-            {/* Left Content */}
-            <div>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-balance leading-tight">
-                International <br className="hidden sm:block" />
-                <span className="bg-gradient-to-r from-primary via-[oklch(0.65_0.25_18)] to-[oklch(0.7_0.22_25)] bg-clip-text text-transparent">Currency Transfer</span> <br className="hidden sm:block" />
-                Provider
-              </h1>
+      <main className="flex-1">
+        <section className="relative overflow-hidden py-16 md:py-28">
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute top-0 right-0 w-72 h-72 bg-accent/20 blur-3xl rounded-full" />
+            <div className="absolute bottom-0 left-0 w-72 h-72 bg-secondary/10 blur-3xl rounded-full" />
+          </div>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+              <div className="space-y-8">
+                <p className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-primary">
+                  <span className="w-2 h-2 rounded-full bg-primary" />
+                  Real-time currency fabric
+                </p>
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-semibold text-balance leading-tight">
+                  {settings.heroHeadline}
+                </h1>
+                <p className="text-lg text-muted-foreground max-w-2xl">{settings.heroSubheadline}</p>
 
-              <p className="text-lg text-muted-foreground mb-6">Send money worldwide with competitive rates, zero hidden fees, and 24/7 support.</p>
+                <div className="grid grid-cols-2 gap-4">
+                  {[
+                    { label: 'Currencies tracked', value: '180+' },
+                    { label: 'Avg settlement speed', value: '8 min' },
+                    { label: 'SLA uptime', value: '99.995%' },
+                    { label: 'Banks connected', value: '42' }
+                  ].map((stat) => (
+                    <div key={stat.label} className="rounded-2xl border border-border bg-card/80 p-4 shadow-sm">
+                      <p className="text-2xl font-semibold text-primary">{stat.value}</p>
+                      <p className="text-xs uppercase tracking-wide text-muted-foreground">{stat.label}</p>
+                    </div>
+                  ))}
+                </div>
 
-              {/* Features List */}
-              <div className="space-y-3 mb-8">
-                <div className="flex items-center gap-3">
-                  <CheckCircle2 size={20} className="text-primary flex-shrink-0" />
-                  <span className="text-sm">Great exchange rates</span>
+                <div className="flex flex-wrap gap-3">
+                  <Link
+                    href="/signup"
+                    className="px-8 py-3 rounded-full bg-primary text-primary-foreground font-semibold hover:scale-[1.01] transition"
+                  >
+                    Launch Converter
+                  </Link>
+                  <Link
+                    href="/features"
+                    className="px-8 py-3 rounded-full border border-primary text-primary font-semibold hover:bg-primary/10 transition"
+                  >
+                    Explore Platform
+                  </Link>
                 </div>
-                <div className="flex items-center gap-3">
-                  <CheckCircle2 size={20} className="text-primary flex-shrink-0" />
-                  <span className="text-sm">No hidden fees</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <CheckCircle2 size={20} className="text-primary flex-shrink-0" />
-                  <span className="text-sm">24/7 Transfers</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <CheckCircle2 size={20} className="text-primary flex-shrink-0" />
-                  <span className="text-sm">5-star customer rating</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <CheckCircle2 size={20} className="text-primary flex-shrink-0" />
-                  <span className="text-sm">Award-winning service</span>
+
+                <div className="flex items-center gap-4 text-sm">
+                  <div className="flex -space-x-3">
+                    {[1, 2, 3].map((i) => (
+                      <span
+                        key={i}
+                        className="w-10 h-10 rounded-full border-2 border-white bg-gradient-to-br from-primary to-secondary"
+                      />
+                    ))}
+                  </div>
+                  <div>
+                    <p className="font-semibold">Trusted by 75k+ growth teams</p>
+                    <p className="text-xs text-muted-foreground">From fintech scale-ups to Fortune 500 treasury ops</p>
+                  </div>
                 </div>
               </div>
 
-              <Link href="#converter" className="inline-flex items-center gap-2 px-8 py-3 bg-primary text-primary-foreground rounded-full font-semibold hover:opacity-90 transition">
-                <span>Get Started</span>
+              <div id="converter" className="relative">
+                <div className="absolute -inset-6 bg-gradient-to-tr from-primary/20 to-accent/20 blur-3xl rounded-3xl" />
+                <div className="relative">
+                  <CurrencyConverter />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="py-16 md:py-24">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {steps.map((step, index) => (
+                <div key={step.title} className="relative rounded-2xl border border-border bg-card p-6 shadow-sm">
+                  <span className="absolute -top-5 left-6 text-6xl font-black text-primary/10">{index + 1}</span>
+                  <div className="relative">
+                    <h3 className="text-xl font-semibold mb-2">{step.title}</h3>
+                    <p className="text-muted-foreground text-sm">{step.detail}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="py-16 md:py-24 bg-muted/40">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center max-w-3xl mx-auto mb-12">
+              <p className="text-sm uppercase tracking-[0.3em] text-primary">Enterprise-grade</p>
+              <h2 className="text-3xl md:text-4xl font-semibold mt-3">Why choose Global CurrencyX?</h2>
+              <p className="text-muted-foreground mt-3">
+                Reliability, accuracy, and narrative-driven insights for your treasury, product, and marketing teams.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {whyUs.map((item) => (
+                <div key={item.title} className="rounded-2xl border border-border bg-card p-6 shadow-sm hover:-translate-y-1 transition">
+                  <item.icon className="text-primary" size={32} />
+                  <h3 className="text-lg font-semibold mt-4">{item.title}</h3>
+                  <p className="text-muted-foreground text-sm mt-2">{item.detail}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="py-16 md:py-24">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-10 gap-6">
+              <div>
+                <p className="text-sm uppercase tracking-[0.3em] text-primary">Insights hub</p>
+                <h2 className="text-3xl font-semibold mt-2">Latest from the CurrencyX blog</h2>
+                <p className="text-muted-foreground mt-2">
+                  Research-backed stories and regulatory updates curated by our FX desk.
+                </p>
+              </div>
+              <Link href="/blog" className="inline-flex items-center gap-2 text-primary font-semibold">
+                Browse all posts
+                <span aria-hidden>→</span>
               </Link>
             </div>
 
-            {/* Right - Currency Converter */}
-            <div id="converter" className="flex justify-center md:justify-end">
-              <CurrencyConverter />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {blogs.length === 0
+                ? Array.from({ length: 3 }).map((_, idx) => (
+                    <div key={idx} className="rounded-2xl border border-dashed border-border p-6">
+                      <Sparkles className="text-primary" />
+                      <p className="text-muted-foreground mt-4">Publish your first blog post to see it here.</p>
+                    </div>
+                  ))
+                : blogs.map((blog) => (
+                    <article key={blog._id} className="rounded-2xl border border-border bg-card overflow-hidden flex flex-col">
+                      <div className="p-6 flex-1 space-y-3">
+                        <p className="text-xs uppercase tracking-[0.25em] text-primary">
+                          {new Date(blog.publishedAt || blog.createdAt).toLocaleDateString()}
+                        </p>
+                        <h3 className="text-xl font-semibold leading-snug">{blog.title}</h3>
+                        <p className="text-muted-foreground text-sm line-clamp-3">{blog.excerpt}</p>
+                      </div>
+                      <div className="p-6 pt-0">
+                        <Link href={`/blog/${blog.slug}`} className="inline-flex items-center gap-2 text-primary font-bold">
+                          Read article
+                          <span>↗</span>
+                        </Link>
+                      </div>
+                    </article>
+                  ))}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* How It Works */}
-      <section className="py-16 md:py-24 bg-card border-t border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">How Money Transfer Works</h2>
-          <p className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto">Simple, secure, and transparent. Three steps to send money anywhere in the world.</p>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              { step: '01', title: 'Create Account', desc: 'Sign up in seconds with your email and basic information.' },
-              { step: '02', title: 'Send Funds', desc: 'Enter recipient details and the amount you want to transfer.' },
-              { step: '03', title: 'Track Transfer', desc: 'Monitor your transfer in real-time with live notifications.' }
-            ].map((item, i) => (
-              <div key={i} className="relative">
-                <div className="text-5xl font-bold text-primary opacity-20 mb-4">{item.step}</div>
-                <h3 className="text-xl font-semibold mb-2">{item.title}</h3>
-                <p className="text-muted-foreground">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Features Grid */}
-      <section className="py-16 md:py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">Why Choose CurrencyX</h2>
-          <p className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto">Experience the best in international money transfer with our premium services.</p>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              { icon: TrendingUp, title: 'Bank-Beating Rates', desc: 'We are fast' },
-              { icon: Zap, title: 'Instant Transfers', desc: 'Money arrives in minutes' },
-              { icon: Lock, title: 'Secure & Safe', desc: 'Bank-level security for your money' },
-              { icon: Globe, title: '150+ Countries', desc: 'Send to virtually anywhere' },
-              { icon: Users, title: 'Expert Support', desc: '24/7 customer service team' },
-              { icon: CheckCircle2, title: 'Easy to Use', desc: 'Simple interface for everyone' }
-            ].map((item, i) => {
-              const Icon = item.icon
-              return (
-                <div key={i} className="bg-card border border-border rounded-xl p-6 hover:border-primary transition">
-                  <Icon size={32} className="text-primary mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">{item.title}</h3>
-                  <p className="text-muted-foreground text-sm">{item.desc}</p>
+        <section className="py-16 md:py-24 bg-secondary text-secondary-foreground">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {testimonials.map((testimonial) => (
+                <div key={testimonial.name} className="bg-white/10 rounded-2xl p-6 shadow-lg border border-white/20">
+                  <p className="text-base leading-relaxed">{testimonial.text}</p>
+                  <div className="mt-6">
+                    <p className="font-semibold">{testimonial.name}</p>
+                    <p className="text-sm opacity-80">{testimonial.role}</p>
+                  </div>
                 </div>
-              )
-            })}
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* CTA Section */}
-      <section className="py-16 md:py-24 gradient-primary">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Send Money?</h2>
-          <p className="text-lg opacity-90 mb-8">Join millions of users who trust CurrencyX for international transfers.</p>
-          <Link href="/signup" className="inline-flex px-8 py-3 bg-white text-primary rounded-full font-semibold hover:opacity-90 transition">
-            Get Started Today
-          </Link>
-        </div>
-      </section>
+        <section className="py-20">
+          <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+            <p className="text-sm uppercase tracking-[0.3em] text-primary">Launch in days</p>
+            <h2 className="text-3xl md:text-4xl font-semibold mt-4">
+              Ready to deploy a real-time converter, blog, and admin console?
+            </h2>
+            <p className="text-muted-foreground mt-4">
+              Deploy to Vercel, connect MongoDB Atlas, and invite your team. Your brand, colors, and metadata are configurable from the dashboard.
+            </p>
+            <div className="mt-8 flex flex-wrap justify-center gap-4">
+              <Link href="/signup" className="px-10 py-3 rounded-full bg-primary text-primary-foreground font-semibold">
+                Create free account
+              </Link>
+              <Link href="/about" className="px-10 py-3 rounded-full border border-primary text-primary font-semibold">
+                Learn about us
+              </Link>
+            </div>
+          </div>
+        </section>
+      </main>
 
       <Footer />
     </div>

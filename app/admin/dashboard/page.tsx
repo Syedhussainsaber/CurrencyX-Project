@@ -1,85 +1,87 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Card } from '@/components/ui/card'
-import { TrendingUp, Users, DollarSign, ArrowRight } from 'lucide-react'
+import { ArrowRight, Mail } from 'lucide-react'
 
-interface DashboardStats {
-  totalTransfers: number
-  totalAmount: string
-  activeUsers: number
-  exchangeRates: { pair: string; rate: string }[]
+interface OverviewResponse {
+  blogs: { _id: string; count: number }[]
+  contacts: { _id: string; count: number }[]
+  rates: { base: string; fetchedAt: string; provider?: string }[]
 }
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState<DashboardStats | null>(null)
+  const [data, setData] = useState<OverviewResponse | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const mockStats: DashboardStats = {
-      totalTransfers: 12453,
-      totalAmount: '$2.5B',
-      activeUsers: 450000,
-      exchangeRates: [
-        { pair: 'USD/EUR', rate: '0.92' },
-        { pair: 'GBP/USD', rate: '1.27' },
-        { pair: 'EUR/JPY', rate: '162.8' }
-      ]
+    const fetchOverview = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch('/api/admin/overview', { cache: 'no-store' })
+        if (!response.ok) throw new Error('Unable to load overview')
+        const payload = await response.json()
+        setData(payload)
+      } catch (err) {
+        setError((err as Error).message)
+      } finally {
+        setLoading(false)
+      }
     }
-    setStats(mockStats)
-    setLoading(false)
+    fetchOverview()
   }, [])
 
-  if (loading) return <div>Loading...</div>
-  if (!stats) return <div>Error loading dashboard</div>
+  if (loading) return <p>Loading dashboard…</p>
+  if (error) return <p className="text-destructive">{error}</p>
+  if (!data) return null
+
+  const published = data.blogs.find((item) => item._id === 'published')?.count || 0
+  const drafts = data.blogs.find((item) => item._id === 'draft')?.count || 0
+  const newContacts = data.contacts.find((item) => item._id === 'new')?.count || 0
+  const responded = data.contacts.find((item) => item._id === 'responded')?.count || 0
 
   return (
     <div>
       <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div className="bg-card border border-border rounded-xl p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-muted-foreground text-sm mb-2">Total Transfers</p>
-              <p className="text-3xl font-bold">{stats.totalTransfers.toLocaleString()}</p>
-            </div>
-            <TrendingUp size={40} className="text-primary opacity-20" />
+          <p className="text-muted-foreground text-sm mb-1">Published articles</p>
+          <p className="text-3xl font-semibold">{published}</p>
+          <p className="text-xs text-muted-foreground">{drafts} drafts</p>
+        </div>
+        <div className="bg-card border border-border rounded-xl p-6">
+          <p className="text-muted-foreground text-sm mb-1">Draft queue</p>
+          <p className="text-3xl font-semibold">{drafts}</p>
+          <p className="text-xs text-muted-foreground">Awaiting approval</p>
+        </div>
+        <div className="bg-card border border-border rounded-xl p-6 flex items-center gap-4">
+          <Mail className="text-primary" />
+          <div>
+            <p className="text-muted-foreground text-sm">New contact forms</p>
+            <p className="text-2xl font-semibold">{newContacts}</p>
+            <p className="text-xs text-muted-foreground">{responded} resolved</p>
           </div>
         </div>
-
         <div className="bg-card border border-border rounded-xl p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-muted-foreground text-sm mb-2">Total Amount Transferred</p>
-              <p className="text-3xl font-bold">{stats.totalAmount}</p>
-            </div>
-            <DollarSign size={40} className="text-primary opacity-20" />
-          </div>
-        </div>
-
-        <div className="bg-card border border-border rounded-xl p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-muted-foreground text-sm mb-2">Active Users</p>
-              <p className="text-3xl font-bold">{stats.activeUsers.toLocaleString()}</p>
-            </div>
-            <Users size={40} className="text-primary opacity-20" />
-          </div>
+          <p className="text-muted-foreground text-sm mb-1">Rate snapshots</p>
+          <p className="text-3xl font-semibold">{data.rates.length}</p>
+          <p className="text-xs text-muted-foreground">
+            Last fetch {data.rates[0]?.provider || 'pending'}
+          </p>
         </div>
       </div>
 
-      {/* Exchange Rates */}
       <div className="bg-card border border-border rounded-xl p-6">
-        <h2 className="text-xl font-bold mb-6">Live Exchange Rates</h2>
-
+        <h2 className="text-xl font-bold mb-6">Latest rate base pulls</h2>
         <div className="space-y-4">
-          {stats.exchangeRates.map((rate) => (
-            <div key={rate.pair} className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
-              <span className="font-semibold">{rate.pair}</span>
+          {data.rates.map((rate) => (
+            <div key={rate.base} className="flex items-center justify-between p-4 bg-muted/40 rounded-lg">
+              <span className="font-semibold">{rate.base}</span>
               <div className="flex items-center gap-2">
-                <span className="text-lg font-bold">{rate.rate}</span>
+                <span className="text-sm text-muted-foreground">
+                  {new Date(rate.fetchedAt).toLocaleString()} · {rate.provider}
+                </span>
                 <ArrowRight size={18} className="text-primary" />
               </div>
             </div>

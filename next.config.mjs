@@ -1,7 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  swcMinify: true,
   
   images: {
     formats: ['image/avif', 'image/webp'],
@@ -11,7 +10,7 @@ const nextConfig = {
         hostname: '*.vercel-storage.com'
       }
     ],
-    unoptimized: true, // <UPDATE> Added unoptimized option
+    // Removed unoptimized: true to re-enable image optimization
   },
 
   headers: async () => {
@@ -67,14 +66,7 @@ const nextConfig = {
   
   productionBrowserSourceMaps: false,
 
-
-  // <UPDATE> Added eslint and typescript configurations
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
+  // Removed eslint and typescript blocks to re-enable error checking
 }
 
 export default nextConfig

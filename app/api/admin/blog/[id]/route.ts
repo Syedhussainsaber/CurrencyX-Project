@@ -1,0 +1,107 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
+import { cookies } from 'next/headers'
+import { connectToDatabase } from '@/lib/db'
+import BlogModel from '@/models/Blog'
+import { verifyAdminToken } from '@/lib/auth'
+
+const updateSchema = z.object({
+  title: z.string().min(4).optional(),
+  excerpt: z.string().min(20).max(300).optional(),
+  content: z.string().min(50).optional(),
+  coverImage: z.string().url().optional().or(z.literal('')),
+  author: z.string().min(2).optional(),
+  tags: z.array(z.string()).optional(),
+  status: z.enum(['draft', 'published']).optional(),
+  seoTitle: z.string().optional(),
+  seoDescription: z.string().optional()
+})
+
+const ensureAdmin = (request: NextRequest) => {
+  const bearer = request.headers.get('authorization')
+  const headerToken = bearer?.startsWith('Bearer ') ? bearer.replace('Bearer ', '') : undefined
+  const cookieToken = cookies().get('admin_token')?.value
+  const payload = verifyAdminToken(headerToken || cookieToken)
+  if (!payload) {
+    throw new Error('Unauthorized')
+  }
+  return payload
+}
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    ensureAdmin(request)
+    await connectToDatabase()
+    const blog = await BlogModel.findById(params.id).lean()
+    if (!blog) {
+      return NextResponse.json({ message: 'Post not found' }, { status: 404 })
+    }
+    return NextResponse.json({ data: blog })
+  } catch (error) {
+    console.error('[api] blog detail error', error)
+    if ((error as Error).message === 'Unauthorized') {
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
+    }
+    return NextResponse.json({ message: 'Failed to fetch post' }, { status: 500 })
+  }
+}
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    ensureAdmin(request)
+    const body = await request.json()
+    const payload = updateSchema.parse(body)
+
+    await connectToDatabase()
+    const updated = await BlogModel.findByIdAndUpdate(
+      params.id,
+      { $set: payload },
+      { new: true }
+    )
+
+    if (!updated) {
+      return NextResponse.json({ message: 'Post not found' }, { status: 404 })
+    }
+
+    return NextResponse.json({ success: true, data: updated })
+  } catch (error) {
+    console.error('[api] blog update error', error)
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ message: 'Invalid payload', issues: error.flatten() }, { status: 422 })
+    }
+    if ((error as Error).message === 'Unauthorized') {
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
+    }
+    return NextResponse.json({ message: 'Failed to update post' }, { status: 500 })
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    ensureAdmin(request)
+    await connectToDatabase()
+    const result = await BlogModel.findByIdAndDelete(params.id)
+
+    if (!result) {
+      return NextResponse.json({ message: 'Post not found' }, { status: 404 })
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('[api] blog delete error', error)
+    if ((error as Error).message === 'Unauthorized') {
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
+    }
+    return NextResponse.json({ message: 'Failed to delete post' }, { status: 500 })
+  }
+}
+

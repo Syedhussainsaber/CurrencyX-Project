@@ -1,123 +1,312 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { ArrowRightLeft, Zap } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
+import { zodResolver } from '@hookform/resolvers/zod'
+import {
+  ArrowRightLeft,
+  Clock4,
+  RefreshCw,
+  Search,
+  ShieldCheck,
+  Zap
+} from 'lucide-react'
+import { currencies, getCurrencyMeta } from '@/data/currencies'
+import { cn, formatDate } from '@/lib/utils'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList
+} from '@/components/ui/command'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Skeleton } from '@/components/ui/skeleton'
 
-const CURRENCIES = ['USD', 'EUR', 'GBP', 'JPY', 'CAD', 'AUD', 'CHF', 'CNY', 'INR', 'MXN']
+const formSchema = z.object({
+  amount: z.string().min(1).default('100'),
+  fromCurrency: z.string().length(3),
+  toCurrency: z.string().length(3)
+})
 
-interface ExchangeRates {
-  [key: string]: number
+type ConverterForm = z.infer<typeof formSchema>
+
+interface RateResponse {
+  base: string
+  rates: Record<string, number>
+  timestamp: string
+  provider: string
+}
+
+const REFRESH_INTERVAL_MS = 1000 * 60 * 3 // 3 minutes
+
+interface CurrencySelectProps {
+  label: string
+  value: string
+  onChange: (value: string) => void
+}
+
+const CurrencySelect = ({ label, value, onChange }: CurrencySelectProps) => {
+  const [open, setOpen] = useState(false)
+  const selected = getCurrencyMeta(value)
+
+  return (
+    <div className="space-y-2">
+      <p className="text-sm font-medium">{label}</p>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            className="w-full justify-between"
+          >
+            <span className="flex items-center gap-3">
+              <span className="text-xl">{selected?.flag ?? '🌐'}</span>
+              <span className="text-left">
+                <span className="block text-sm font-semibold">{selected?.code}</span>
+                <span className="block text-xs text-muted-foreground truncate">{selected?.name}</span>
+              </span>
+            </span>
+            <Search size={16} className="opacity-60" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="p-0 w-80" sideOffset={8}>
+          <Command>
+            <CommandInput placeholder="Search currency..." />
+            <CommandList>
+              <CommandEmpty>No currency found.</CommandEmpty>
+              <ScrollArea className="max-h-64">
+                <CommandGroup heading="Global currencies">
+                  {currencies.map((currencyItem) => (
+                    <CommandItem
+                      key={currencyItem.code}
+                      onSelect={() => {
+                        onChange(currencyItem.code)
+                        setOpen(false)
+                      }}
+                    >
+                      <span className="text-xl mr-3">{currencyItem.flag}</span>
+                      <div>
+                        <p className="font-semibold text-sm">
+                          {currencyItem.code} · {currencyItem.country}
+                        </p>
+                        <p className="text-xs text-muted-foreground">{currencyItem.name}</p>
+                      </div>
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </ScrollArea>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
+    </div>
+  )
 }
 
 export default function CurrencyConverter() {
-  const [fromCurrency, setFromCurrency] = useState('USD')
-  const [toCurrency, setToCurrency] = useState('EUR')
-  const [amount, setAmount] = useState('100')
-  const [rates, setRates] = useState<ExchangeRates>({})
-  const [loading, setLoading] = useState(true)
-  const [displayRate, setDisplayRate] = useState('1')
+  const [rates, setRates] = useState<RateResponse | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null)
 
-  useEffect(() => {
-    fetchRates()
-  }, [])
+  const { register, watch, setValue } = useForm<ConverterForm>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      amount: '100',
+      fromCurrency: 'USD',
+      toCurrency: 'EUR'
+    }
+  })
 
-  const fetchRates = async () => {
-    try {
+  const formValues = watch()
+
+  const fetchRates = useCallback(
+    async (base: string) => {
       setLoading(true)
-      const res = await fetch(`/api/rates?base=${fromCurrency}`)
-      const data = await res.json()
-      setRates(data.rates || {})
-      updateDisplayRate(data.rates || {}, fromCurrency, toCurrency)
-    } catch (error) {
-      console.log("[v0] Error fetching rates:", error)
-    } finally {
-      setLoading(false)
-    }
-  }
+      setError(null)
+
+      try {
+        const response = await fetch(`/api/rates?base=${base}`, {
+          cache: 'no-store'
+        })
+
+        if (!response.ok) {
+          throw new Error('Unable to fetch live rates')
+        }
+
+        const data: RateResponse = await response.json()
+        data.rates[base] = 1
+        setRates(data)
+        setLastUpdated(data.timestamp)
+      } catch (err) {
+        console.error('[converter] rates error', err)
+        setError('Unable to load rates. Try again shortly.')
+      } finally {
+        setLoading(false)
+      }
+    },
+    []
+  )
 
   useEffect(() => {
-    updateDisplayRate(rates, fromCurrency, toCurrency)
-  }, [fromCurrency, toCurrency, rates])
+    fetchRates(formValues.fromCurrency)
+  }, [fetchRates, formValues.fromCurrency])
 
-  const updateDisplayRate = (currentRates: ExchangeRates, from: string, to: string) => {
-    if (currentRates[to]) {
-      const rate = (currentRates[to] || 1).toFixed(5)
-      setDisplayRate(rate)
-    }
-  }
+  useEffect(() => {
+    const interval = setInterval(() => fetchRates(formValues.fromCurrency), REFRESH_INTERVAL_MS)
+    return () => clearInterval(interval)
+  }, [fetchRates, formValues.fromCurrency])
 
   const handleSwap = () => {
-    setFromCurrency(toCurrency)
-    setToCurrency(fromCurrency)
+    const currentFrom = formValues.fromCurrency
+    const currentTo = formValues.toCurrency
+    setValue('fromCurrency', currentTo)
+    setValue('toCurrency', currentFrom)
   }
 
-  const convertedAmount = (parseFloat(amount || '0') * parseFloat(displayRate)).toFixed(2)
+  const currentRate = useMemo(() => {
+    if (!rates) return 0
+    return rates.rates[formValues.toCurrency] || 0
+  }, [rates, formValues.toCurrency])
+
+  const convertedAmount = useMemo(() => {
+    const amount = parseFloat(formValues.amount || '0')
+    if (!currentRate || Number.isNaN(amount)) return '0.00'
+    return (amount * currentRate).toFixed(2)
+  }, [formValues.amount, currentRate])
+
+  const highlights = useMemo(() => {
+    if (!rates) return []
+    const majorPairs = ['GBP', 'EUR', 'JPY', 'NGN', 'INR', 'AUD']
+    return majorPairs.map((code) => ({
+      code,
+      meta: getCurrencyMeta(code),
+      rate: rates.rates[code]
+    }))
+  }, [rates])
 
   return (
-    <div className="w-full max-w-md">
-      <div className="gradient-primary rounded-3xl p-8 text-white mb-6">
-        <div className="text-sm opacity-90 mb-2">Exchange Rate</div>
-        <div className="text-3xl font-bold">1 {fromCurrency} = {displayRate} {toCurrency}</div>
+    <div className="w-full max-w-xl space-y-6">
+      <div className="rounded-3xl bg-gradient-to-br from-primary to-secondary text-white p-6 shadow-xl">
+        <div className="flex items-center justify-between text-sm opacity-90">
+          <span>Real-Time Exchange Rate</span>
+          <div className="flex items-center gap-2">
+            <Clock4 size={16} />
+            {lastUpdated ? formatDate(lastUpdated, { dateStyle: 'medium', timeStyle: 'short' }) : 'Syncing...'}
+          </div>
+        </div>
+        <p className="mt-4 text-4xl font-semibold">
+          1 {formValues.fromCurrency} ={' '}
+          {loading ? <span className="text-base">updating...</span> : currentRate.toFixed(5)} {formValues.toCurrency}
+        </p>
+        <p className="mt-2 text-sm opacity-80 flex items-center gap-2">
+          <ShieldCheck size={16} />
+          {rates?.provider ? `Powered by ${rates.provider}` : 'Bank-grade data source'}
+        </p>
       </div>
 
-      <div className="bg-card border border-border rounded-2xl p-6 space-y-6">
-        {/* From */}
-        <div>
-          <label className="block text-sm font-medium mb-2">From</label>
-          <div className="flex gap-4">
-            <input
+      <div className="bg-card border border-border rounded-2xl p-6 shadow-sm space-y-6">
+        <div className="grid grid-cols-1 gap-6">
+          <div>
+            <label className="text-sm font-semibold mb-2 block">Amount</label>
+            <Input
               type="number"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              className="flex-1 px-4 py-3 bg-input border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              placeholder="0"
+              step="0.01"
+              min="0"
+              {...register('amount')}
+              className="text-lg h-12"
             />
-            <select
-              value={fromCurrency}
-              onChange={(e) => setFromCurrency(e.target.value)}
-              className="px-4 py-3 bg-input border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <CurrencySelect
+              label="From Currency"
+              value={formValues.fromCurrency}
+              onChange={(val) => setValue('fromCurrency', val)}
+            />
+
+            <CurrencySelect
+              label="To Currency"
+              value={formValues.toCurrency}
+              onChange={(val) => setValue('toCurrency', val)}
+            />
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <Button
+              type="button"
+              onClick={handleSwap}
+              variant="secondary"
+              className="w-full sm:w-auto"
             >
-              {CURRENCIES.map(curr => (
-                <option key={curr} value={curr}>{curr}</option>
-              ))}
-            </select>
+              <ArrowRightLeft size={16} className="mr-2" />
+              Swap
+            </Button>
+            <Button
+              type="button"
+              onClick={() => fetchRates(formValues.fromCurrency)}
+              variant="outline"
+              disabled={loading}
+              className="w-full sm:w-auto"
+            >
+              <RefreshCw size={16} className={cn('mr-2', loading && 'animate-spin')} />
+              Refresh rate
+            </Button>
+            <Button className="w-full sm:flex-1 bg-primary text-primary-foreground">
+              <Zap size={16} className="mr-2" />
+              Convert Now
+            </Button>
           </div>
         </div>
 
-        {/* Swap Button */}
-        <div className="flex justify-center">
-          <button
-            onClick={handleSwap}
-            className="p-2 hover:bg-muted rounded-lg transition"
-          >
-            <ArrowRightLeft size={20} className="text-primary" />
-          </button>
+        <div className="p-5 bg-muted/60 rounded-xl border border-dashed border-primary/30">
+          <p className="text-sm font-semibold text-muted-foreground">Converted Amount</p>
+          <p className="text-3xl font-bold mt-2">{convertedAmount} {formValues.toCurrency}</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Updated {lastUpdated ? formatDate(lastUpdated, { dateStyle: 'medium', timeStyle: 'short' }) : 'Just now'}
+          </p>
         </div>
 
-        {/* To */}
-        <div>
-          <label className="block text-sm font-medium mb-2">To</label>
-          <div className="flex gap-4">
-            <div className="flex-1 px-4 py-3 bg-input border border-border rounded-lg text-foreground font-semibold">
-              {loading ? '-' : convertedAmount}
+        {error && (
+          <div className="p-4 bg-destructive/10 text-destructive text-sm rounded-lg border border-destructive/30">
+            {error}
+          </div>
+        )}
+
+        {!error && (
+          <div>
+            <p className="text-sm font-semibold mb-3 flex items-center gap-2">
+              <Search size={14} /> Popular pairs
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              {loading || !rates ? (
+                Array.from({ length: 4 }).map((_, idx) => <Skeleton key={idx} className="h-16 rounded-xl" />)
+              ) : (
+                highlights.map((item) => (
+                  <div key={item.code} className="p-3 rounded-xl border bg-input flex flex-col">
+                    <span className="text-sm text-muted-foreground flex items-center gap-2">
+                      <span>{item.meta?.flag}</span>
+                      {item.meta?.country}
+                    </span>
+                    <span className="text-lg font-semibold">
+                      {formValues.fromCurrency} → {item.code}
+                    </span>
+                    <span className="text-sm text-primary font-bold">
+                      {item.rate ? item.rate.toFixed(4) : '—'}
+                    </span>
+                  </div>
+                ))
+              )}
             </div>
-            <select
-              value={toCurrency}
-              onChange={(e) => setToCurrency(e.target.value)}
-              className="px-4 py-3 bg-input border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-            >
-              {CURRENCIES.map(curr => (
-                <option key={curr} value={curr}>{curr}</option>
-              ))}
-            </select>
           </div>
-        </div>
-
-        {/* Convert Button */}
-        <button className="w-full py-3 bg-gradient-to-r from-primary to-accent text-primary-foreground rounded-xl font-semibold hover:opacity-90 transition flex items-center justify-center gap-2">
-          <Zap size={18} />
-          Convert
-        </button>
+        )}
       </div>
     </div>
   )

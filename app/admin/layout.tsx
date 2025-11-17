@@ -18,9 +18,12 @@ export default function AdminLayout({
     setMounted(true)
   }, [])
 
-  const handleLogout = () => {
-    document.cookie = 'admin_token=; path=/; max-age=0'
-    router.push('/admin/login')
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/admin/logout', { method: 'POST' })
+    } finally {
+      router.push('/admin/login')
+    }
   }
 
   if (!mounted) return null

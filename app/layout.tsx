@@ -2,74 +2,65 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
+import { ThemeProvider } from '@/components/theme-provider'
+import { Toaster } from '@/components/ui/sonner'
+import { getSiteSettings } from '@/lib/site'
+import { SiteSettingsProvider } from '@/components/site-settings-provider'
 
-const _geist = Geist({ subsets: ["latin"] });
-const _geistMono = Geist_Mono({ subsets: ["latin"] });
+const geistSans = Geist({ subsets: ['latin'], variable: '--font-sans' })
+const geistMono = Geist_Mono({ subsets: ['latin'], variable: '--font-mono' })
 
 export const metadata: Metadata = {
-  title: 'CurrencyX - Fast International Money Transfer | Best Exchange Rates',
-  description: 'Send money worldwide with CurrencyX. Get competitive exchange rates, no hidden fees, 24/7 support. Transfer to 150+ countries instantly.',
-  keywords: 'international money transfer, currency exchange, forex, send money abroad, international payments, remittance service',
+  title: 'Global CurrencyX — Real-Time Currency Converter & Insights',
+  description:
+    'Operate a production-ready currency experience with converter, blog, admin console, and SEO-ready pages powered by Global CurrencyX.',
+  keywords: 'currency converter, forex api, exchange rates, remittance dashboard, admin cms',
   authors: [{ name: 'CurrencyX' }],
   creator: 'CurrencyX',
   publisher: 'CurrencyX',
-  robots: 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1',
-  viewport: 'width=device-width, initial-scale=1, maximum-scale=5',
   openGraph: {
-    title: 'CurrencyX - Fast International Money Transfer',
-    description: 'Send money worldwide with competitive rates, no hidden fees, 24/7 support.',
+    title: 'Global CurrencyX — Real-Time Currency Converter & Insights',
+    description: 'Launch live FX widgets, publish blogs, and manage data from one dashboard.',
     url: 'https://currencyx.com',
     siteName: 'CurrencyX',
-    images: [
-      {
-        url: 'https://currencyx.com/og-image.png',
-        width: 1200,
-        height: 630,
-        alt: 'CurrencyX - International Money Transfer'
-      }
-    ],
-    locale: 'en_US',
     type: 'website'
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'CurrencyX - Fast International Money Transfer',
-    description: 'Send money worldwide with the best exchange rates',
-    creator: '@currencyx',
-    images: ['https://currencyx.com/og-image.png']
+    title: 'Global CurrencyX — Real-Time FX Stack',
+    description: 'Live FX rates, CMS, and admin tools for global teams.'
   },
-  alternates: {
-    canonical: 'https://currencyx.com'
-  },
-  verification: {
-    google: 'your-google-verification-code',
-    other: {
-      'msvalidate.01': 'your-bing-verification-code'
-    }
-  },
-    generator: 'v0.app'
+  alternates: { canonical: 'https://currencyx.com' }
 }
 
 export const viewport = {
-  themeColor: 'oklch(0.6 0.22 15)',
+  themeColor: '#075E54',
   colorScheme: 'light dark'
 }
 
-export default function RootLayout({
-  children,
+export default async function RootLayout({
+  children
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const settings = await getSiteSettings()
+
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
-        <meta name="theme-color" content="#9B4DCA" />
+        <meta name="theme-color" content={settings.primaryColor} />
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/apple-icon.png" />
+        {settings.faviconUrl && <link rel="icon" href={settings.faviconUrl} />}
       </head>
-      <body className={`font-sans antialiased`}>
-        {children}
-        <Analytics />
+      <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <SiteSettingsProvider settings={settings}>
+            {children}
+            <Toaster />
+            <Analytics />
+          </SiteSettingsProvider>
+        </ThemeProvider>
       </body>
     </html>
   )
