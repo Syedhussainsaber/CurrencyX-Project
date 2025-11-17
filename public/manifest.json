@@ -1,0 +1,65 @@
+{
+  "name": "CurrencyX - International Money Transfer",
+  "short_name": "CurrencyX",
+  "description": "Fast, secure international money transfer with competitive exchange rates",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "oklch(0.6 0.22 15)",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/apple-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot-1.png",
+      "sizes": "540x720",
+      "type": "image/png",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "/screenshot-2.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
+    }
+  ],
+  "categories": ["finance", "business"],
+  "shortcuts": [
+    {
+      "name": "Send Money",
+      "short_name": "Transfer",
+      "description": "Start a new money transfer",
+      "url": "/?transfer=1",
+      "icons": [
+        {
+          "src": "/transfer-icon.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Exchange Rates",
+      "short_name": "Rates",
+      "description": "Check live exchange rates",
+      "url": "/#converter",
+      "icons": [
+        {
+          "src": "/rates-icon.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ]
+}

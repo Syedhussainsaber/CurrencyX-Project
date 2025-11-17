@@ -1,0 +1,14 @@
+# Allow all bots to crawl the entire site
+User-agent: *
+Allow: /
+
+# Disallow admin and private areas
+Disallow: /admin/
+Disallow: /api/
+Disallow: /.next/
+
+# Sitemap location
+Sitemap: https://currencyx.com/sitemap.xml
+
+# Crawl delay (requests per second)
+Crawl-delay: 1
