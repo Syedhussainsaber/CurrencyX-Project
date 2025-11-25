@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { cookies } from 'next/headers'
 import prisma from '@/lib/prisma'
-import { revalidateTag } from 'next/cache'
 import { verifyAdminToken } from '@/lib/auth'
 
 const settingsSchema = z.object({
@@ -89,7 +88,6 @@ export async function POST(request: NextRequest) {
       where: { id: settings.id },
       data: payload
     })
-    revalidateTag('site-settings')
 
     return NextResponse.json({ success: true, data: updated })
   } catch (error) {

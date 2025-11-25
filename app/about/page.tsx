@@ -19,6 +19,13 @@ export default async function AboutPage() {
     orderBy: { createdAt: 'asc' },
     take: 8
   })
+  const teamMembers: { fullName: string; role?: string | null }[] =
+    members.length
+      ? members.map((m) => ({ fullName: m.fullName, role: (m.role as string) || null }))
+      : [
+          { fullName: 'Syed Hussain', role: 'CEO & Co-founder' },
+          { fullName: 'Syed Shoiab', role: 'COO & Co-founder' }
+        ]
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -72,10 +79,7 @@ export default async function AboutPage() {
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="text-3xl font-semibold text-center mb-12">Team</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {(members.length ? members : [
-                { fullName: 'Syed Hussain', role: 'CEO & Co-founder' },
-                { fullName: 'Syed Shoiab', role: 'COO & Co-founder' }
-              ]).map((member) => (
+              {teamMembers.map((member) => (
                 <div key={member.fullName} className="bg-card border border-border rounded-2xl p-6 text-center">
                   <div className="w-16 h-16 rounded-full mx-auto bg-primary/10 mb-4" />
                   <p className="font-semibold">{member.fullName}</p>
