@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import prisma from '@/lib/prisma'
-import { sendContactEmails } from '@/lib/mailer'
+import { sendContactEmails, type ContactEmailPayload } from '@/lib/mailer'
 
 const contactSchema = z.object({
   name: z.string().min(2).max(80),
@@ -14,7 +14,7 @@ const contactSchema = z.object({
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const payload = contactSchema.parse(body)
+    const payload = contactSchema.parse(body) as ContactEmailPayload
 
     await prisma.contactSubmission.create({
       data: payload
