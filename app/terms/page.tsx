@@ -1,16 +1,18 @@
-import Header from '@/components/header'
-import Footer from '@/components/footer'
+import Header from '@/components/common/header'
+import Footer from '@/components/common/footer'
+import { getSiteSettings } from '@/lib/site'
 import { Scale, AlertCircle, CheckCircle, FileCheck } from 'lucide-react'
 
 export const metadata = {
-  title: 'Terms & Conditions - CurrencyX',
-  description: 'Read CurrencyX terms and conditions to understand the rules and regulations for using our currency conversion services.',
+  title: 'Terms & Conditions - PayIn Global',
+  description: 'Read PayIn Global terms and conditions to understand the rules and regulations for using our currency conversion services.',
   alternates: {
-    canonical: 'https://currencyx.com/terms'
+    canonical: 'https://payinglobal.com/terms'
   }
 }
 
-export default function TermsPage() {
+export default async function TermsPage() {
+  const settings = await getSiteSettings()
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
@@ -37,8 +39,8 @@ export default function TermsPage() {
                   Agreement to Terms
                 </h2>
                 <p className="text-muted-foreground">
-                  By accessing or using CurrencyX's website, services, or applications, you agree to be bound by these 
-                  Terms and Conditions. If you disagree with any part of these terms, you may not access or use our services.
+                  By accessing or using PayIn Global's website, services, or applications, you agree to be bound by these Terms and Conditions. 
+                  If you disagree with any part of these terms, you may not access or use our services.
                 </p>
               </div>
 
@@ -102,7 +104,7 @@ export default function TermsPage() {
                   <div>
                     <h3 className="font-semibold text-foreground mb-2">Limitations of Liability</h3>
                     <p>
-                      CurrencyX provides currency conversion information and tools for general informational purposes. We are not 
+                      PayIn Global provides currency conversion information and tools for general informational purposes. We are not 
                       a financial institution and do not provide financial advice. You acknowledge that any decisions made based 
                       on information from our service are made at your own risk.
                     </p>
@@ -114,7 +116,7 @@ export default function TermsPage() {
                 <h2 className="text-2xl font-bold mb-4">Intellectual Property</h2>
                 <p className="text-muted-foreground">
                   All content, features, and functionality of our service, including but not limited to text, graphics, logos, 
-                  icons, images, and software, are the exclusive property of CurrencyX and are protected by international 
+                  icons, images, and software, are the exclusive property of PayIn Global and are protected by international 
                   copyright, trademark, and other intellectual property laws. You may not reproduce, distribute, modify, or 
                   create derivative works without our express written permission.
                 </p>
@@ -162,7 +164,7 @@ export default function TermsPage() {
               <div>
                 <h2 className="text-2xl font-bold mb-4">Limitation of Liability</h2>
                 <p className="text-muted-foreground">
-                  To the maximum extent permitted by law, CurrencyX shall not be liable for any indirect, incidental, special, 
+                  To the maximum extent permitted by law, PayIn Global shall not be liable for any indirect, incidental, special, 
                   consequential, or punitive damages, or any loss of profits or revenues, whether incurred directly or indirectly, 
                   or any loss of data, use, goodwill, or other intangible losses resulting from your use of our service.
                 </p>
@@ -171,7 +173,7 @@ export default function TermsPage() {
               <div>
                 <h2 className="text-2xl font-bold mb-4">Indemnification</h2>
                 <p className="text-muted-foreground">
-                  You agree to indemnify, defend, and hold harmless CurrencyX and its officers, directors, employees, and agents 
+                  You agree to indemnify, defend, and hold harmless PayIn Global and its officers, directors, employees, and agents 
                   from any claims, damages, losses, liabilities, and expenses (including legal fees) arising out of or relating to 
                   your use of the service or violation of these Terms.
                 </p>
@@ -180,7 +182,7 @@ export default function TermsPage() {
               <div>
                 <h2 className="text-2xl font-bold mb-4">Governing Law</h2>
                 <p className="text-muted-foreground">
-                  These Terms shall be governed by and construed in accordance with the laws of the jurisdiction in which CurrencyX 
+                  These Terms shall be governed by and construed in accordance with the laws of the jurisdiction in which PayIn Global 
                   operates, without regard to its conflict of law provisions. Any disputes arising from these Terms shall be subject 
                   to the exclusive jurisdiction of the courts in that jurisdiction.
                 </p>
@@ -209,10 +211,10 @@ export default function TermsPage() {
                   If you have any questions about these Terms & Conditions, please contact us:
                 </p>
                 <div className="mt-4 p-4 bg-card border border-border rounded-lg">
-                  <p className="font-semibold">CurrencyX Legal Department</p>
-                  <p className="text-muted-foreground">Email: legal@currencyx.com</p>
-                  <p className="text-muted-foreground">Phone: +1 (800) 123-4567</p>
-                  <p className="text-muted-foreground">Address: 123 Finance St, New York, NY 10001, USA</p>
+                  <p className="font-semibold">PayIn Global Legal Department</p>
+                  <p className="text-muted-foreground">Email: legal@payinglobal.com</p>
+                  <p className="text-muted-foreground">Phone: {settings.supportPhone}</p>
+                  <p className="text-muted-foreground">Address: Hyderabad, India</p>
                 </div>
               </div>
             </div>

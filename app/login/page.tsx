@@ -1,7 +1,7 @@
 'use client'
 
-import Header from '@/components/header'
-import Footer from '@/components/footer'
+import Header from '@/components/common/header'
+import Footer from '@/components/common/footer'
 import Link from 'next/link'
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -47,7 +47,6 @@ export default function Login() {
     setError('')
     
     try {
-      // This should point to your user login API, not the admin one
       const res = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -58,15 +57,18 @@ export default function Login() {
 
       if (res.ok) {
         toast.success("Login successful! Redirecting...")
-        // In a real app, you'd set a token/session here
-        // document.cookie = `auth_token=${result.token}; path=/; secure; samesite=strict`
-        router.push('/') // Redirect to home or user dashboard
+        // Token is set via httpOnly cookie, so we don't need to handle it manually
+        router.push('/')
+        router.refresh()
       } else {
-        setError(result.message || 'Login failed')
+        const errorMsg = result.message || 'Incorrect email or password'
+        setError(errorMsg)
+        toast.error(errorMsg)
       }
     } catch (err) {
-      console.log("[v0] Login error:", err)
+      console.error("[login] Error:", err)
       setError('An error occurred. Please try again.')
+      toast.error('An error occurred. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -80,7 +82,7 @@ export default function Login() {
         <div className="max-w-md mx-auto px-4">
           <div className="bg-card border border-border rounded-xl p-8">
             <h1 className="text-2xl font-bold mb-2">Log In</h1>
-            <p className="text-muted-foreground mb-6">Sign in to your CurrencyX account.</p>
+            <p className="text-muted-foreground mb-6">Sign in to your PayIn Global account.</p>
 
             {error && (
               <Alert variant="destructive" className="mb-4">

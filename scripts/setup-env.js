@@ -16,20 +16,20 @@ const examplePath = path.join(process.cwd(), '.env.example')
 const jwtSecret = crypto.randomBytes(32).toString('hex')
 const passwordHash = bcrypt.hashSync('password123', 10)
 
-const envContent = `# Environment Configuration for CurrencyX
+const envContent = `# Environment Configuration for PayIn Global
 # Generated on ${new Date().toISOString()}
 
 # Node Environment
 NODE_ENV=development
 
 # MongoDB Connection
-# For local development, use: mongodb://localhost:27017/currencyx
+# For local development, use: mongodb://localhost:27017/payinglobal
 # For MongoDB Atlas, use your connection string from Atlas dashboard
-MONGODB_URI=mongodb://localhost:27017/currencyx
+MONGODB_URI=mongodb://localhost:27017/payinglobal
 
 # Admin Authentication
-# Default admin credentials: admin@currencyx.com / password123
-ADMIN_EMAIL=admin@currencyx.com
+# Default admin credentials: admin@payinglobal.com / password123
+ADMIN_EMAIL=admin@payinglobal.com
 ADMIN_PASSWORD_HASH=${passwordHash}
 
 # JWT Secret
@@ -62,7 +62,7 @@ if (fs.existsSync(envPath)) {
 } else {
   fs.writeFileSync(envPath, envContent)
   console.log('✅ Created .env file with default values')
-  console.log('📝 Default admin credentials: admin@currencyx.com / password123')
+  console.log('📝 Default admin credentials: admin@payinglobal.com / password123')
   console.log('🔐 JWT secret and password hash have been generated')
 }
 

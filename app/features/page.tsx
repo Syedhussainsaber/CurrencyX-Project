@@ -1,5 +1,5 @@
-import Header from '@/components/header'
-import Footer from '@/components/footer'
+import Header from '@/components/common/header'
+import Footer from '@/components/common/footer'
 import { Shield, Zap, Globe, Layers, BarChart3 } from 'lucide-react'
 
 const features = [
@@ -40,7 +40,7 @@ export default function FeaturesPage() {
             <p className="text-xs uppercase tracking-[0.3em] text-primary">Feature set</p>
             <h1 className="text-4xl md:text-5xl font-semibold">Everything you need to ship currency experiences</h1>
             <p className="text-muted-foreground">
-              From rate fetching to CMS publishing to admin controls, Global CurrencyX is an end-to-end Next.js stack.
+              From rate fetching to CMS publishing to admin controls, PayIn Global is an end-to-end Next.js stack.
             </p>
           </div>
         </section>

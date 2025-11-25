@@ -81,44 +81,60 @@ export default function AdminTransfers() {
     }
   }
 
-  if (loading) return <div>Loading...</div>
+  if (loading) {
+    return (
+      <div>
+        <h1 className="text-3xl font-bold mb-8">Transfers</h1>
+        <div className="bg-card border border-border rounded-xl p-8 text-center text-muted-foreground">
+          Loading transfers...
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div>
       <h1 className="text-3xl font-bold mb-8">Transfers</h1>
+      <div className="bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mb-6">
+        <p className="text-sm text-yellow-800 dark:text-yellow-200">
+          <strong>Note:</strong> This is a demo page with sample data. Transfer functionality would be implemented based on your specific requirements.
+        </p>
+      </div>
 
       <div className="bg-card border border-border rounded-xl overflow-hidden">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-border bg-muted/50">
-              <th className="text-left px-6 py-3 font-semibold">ID</th>
-              <th className="text-left px-6 py-3 font-semibold">Route</th>
-              <th className="text-left px-6 py-3 font-semibold">Amount</th>
-              <th className="text-left px-6 py-3 font-semibold">Status</th>
-              <th className="text-left px-6 py-3 font-semibold">User</th>
-              <th className="text-left px-6 py-3 font-semibold">Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            {transfers.map((transfer) => (
-              <tr key={transfer.id} className="border-b border-border hover:bg-muted/30 transition">
-                <td className="px-6 py-4 font-mono text-sm">{transfer.id}</td>
-                <td className="px-6 py-4 text-sm">{transfer.from} → {transfer.to}</td>
-                <td className="px-6 py-4 font-semibold">{transfer.amount} {transfer.currency}</td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-2">
-                    {getStatusIcon(transfer.status)}
-                    <span className={`text-xs px-3 py-1 rounded-full ${getStatusColor(transfer.status)} capitalize`}>
-                      {transfer.status}
-                    </span>
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-sm">{transfer.user}</td>
-                <td className="px-6 py-4 text-sm">{new Date(transfer.date).toLocaleDateString()}</td>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[700px]">
+            <thead>
+              <tr className="border-b border-border bg-muted/50">
+                <th className="text-left px-4 sm:px-6 py-3 font-semibold text-sm">ID</th>
+                <th className="text-left px-4 sm:px-6 py-3 font-semibold text-sm">Route</th>
+                <th className="text-left px-4 sm:px-6 py-3 font-semibold text-sm">Amount</th>
+                <th className="text-left px-4 sm:px-6 py-3 font-semibold text-sm">Status</th>
+                <th className="text-left px-4 sm:px-6 py-3 font-semibold text-sm hidden md:table-cell">User</th>
+                <th className="text-left px-4 sm:px-6 py-3 font-semibold text-sm hidden lg:table-cell">Date</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {transfers.map((transfer) => (
+                <tr key={transfer.id} className="border-b border-border hover:bg-muted/30 transition">
+                  <td className="px-4 sm:px-6 py-4 font-mono text-sm">{transfer.id}</td>
+                  <td className="px-4 sm:px-6 py-4 text-sm">{transfer.from} → {transfer.to}</td>
+                  <td className="px-4 sm:px-6 py-4 font-semibold">{transfer.amount} {transfer.currency}</td>
+                  <td className="px-4 sm:px-6 py-4">
+                    <div className="flex items-center gap-2">
+                      {getStatusIcon(transfer.status)}
+                      <span className={`text-xs px-2 sm:px-3 py-1 rounded-full ${getStatusColor(transfer.status)} capitalize`}>
+                        {transfer.status}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-4 sm:px-6 py-4 text-sm hidden md:table-cell">{transfer.user}</td>
+                  <td className="px-4 sm:px-6 py-4 text-sm hidden lg:table-cell">{new Date(transfer.date).toLocaleDateString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   )

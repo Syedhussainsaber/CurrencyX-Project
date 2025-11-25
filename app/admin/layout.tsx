@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { LogOut, Menu, X, Home, FileText, BarChart3, Settings, Mail } from 'lucide-react'
+import { toast } from 'sonner'
 
 export default function AdminLayout({
   children,
@@ -20,9 +21,19 @@ export default function AdminLayout({
 
   const handleLogout = async () => {
     try {
-      await fetch('/api/admin/logout', { method: 'POST' })
-    } finally {
+      await fetch('/api/admin/logout', { 
+        method: 'POST',
+        credentials: 'include'
+      })
+      toast.success('Logged out successfully')
       router.push('/admin/login')
+      router.refresh()
+    } catch (error) {
+      console.error('[admin] Logout error:', error)
+      toast.error('Failed to logout. Please try again.')
+      // Still redirect even if API call fails
+      router.push('/admin/login')
+      router.refresh()
     }
   }
 
@@ -35,7 +46,7 @@ export default function AdminLayout({
         <div className="p-4 border-b border-border">
           <Link href="/admin/dashboard" className="font-bold text-xl">
             <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              {sidebarOpen ? 'CurrencyX' : 'CX'}
+              {sidebarOpen ? 'PayIn Global' : 'PG'}
             </span>
           </Link>
         </div>

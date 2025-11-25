@@ -11,30 +11,30 @@ const geistSans = Geist({ subsets: ['latin'], variable: '--font-sans' })
 const geistMono = Geist_Mono({ subsets: ['latin'], variable: '--font-mono' })
 
 export const metadata: Metadata = {
-  title: 'Global CurrencyX — Real-Time Currency Converter & Insights',
+  title: 'PayIn Global — Real-Time Currency Converter & Insights',
   description:
-    'Operate a production-ready currency experience with converter, blog, admin console, and SEO-ready pages powered by Global CurrencyX.',
+    'Operate a production-ready currency experience with converter, blog, admin console, and SEO-ready pages powered by PayIn Global.',
   keywords: 'currency converter, forex api, exchange rates, remittance dashboard, admin cms',
-  authors: [{ name: 'CurrencyX' }],
-  creator: 'CurrencyX',
-  publisher: 'CurrencyX',
+  authors: [{ name: 'PayIn Global' }],
+  creator: 'PayIn Global',
+  publisher: 'PayIn Global',
   openGraph: {
-    title: 'Global CurrencyX — Real-Time Currency Converter & Insights',
+    title: 'PayIn Global — Real-Time Currency Converter & Insights',
     description: 'Launch live FX widgets, publish blogs, and manage data from one dashboard.',
-    url: 'https://currencyx.com',
-    siteName: 'CurrencyX',
+    url: 'https://payinglobal.com',
+    siteName: 'PayIn Global',
     type: 'website'
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Global CurrencyX — Real-Time FX Stack',
+    title: 'PayIn Global — Real-Time FX Stack',
     description: 'Live FX rates, CMS, and admin tools for global teams.'
   },
-  alternates: { canonical: 'https://currencyx.com' }
+  alternates: { canonical: 'https://payinglobal.com' }
 }
 
 export const viewport = {
-  themeColor: '#075E54',
+  themeColor: '#25D366',
   colorScheme: 'light dark'
 }
 

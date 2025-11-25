@@ -37,14 +37,14 @@ export const sendContactEmails = async (payload: ContactEmailPayload) => {
   `
 
   await resend.emails.send({
-    from: `CurrencyX Support <support@${new URL(env.SITE_URL).hostname}>`,
+    from: `PayIn Global Support <support@${new URL(env.SITE_URL).hostname}>`,
     to: [payload.email],
     subject: `We've received your message: ${payload.subject}`,
-    html: `<p>Hi ${payload.name},</p><p>Thank you for reaching out to CurrencyX. Our support team will respond shortly.</p>`
+    html: `<p>Hi ${payload.name},</p><p>Thank you for reaching out to PayIn Global. Our support team will respond shortly.</p>`
   })
 
   await resend.emails.send({
-    from: `CurrencyX Contact <no-reply@${new URL(env.SITE_URL).hostname}>`,
+    from: `PayIn Global Contact <no-reply@${new URL(env.SITE_URL).hostname}>`,
     to: [inbox],
     subject: `[Contact] ${payload.subject}`,
     html

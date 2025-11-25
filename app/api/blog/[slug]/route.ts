@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
-import { connectToDatabase } from '@/lib/db'
-import BlogModel from '@/models/Blog'
+import prisma from '@/lib/prisma'
 
 export async function GET(
   _: Request,
@@ -8,11 +7,14 @@ export async function GET(
 ) {
   try {
     const { slug } = await params
-    await connectToDatabase()
-    const blog = await BlogModel.findOne({ slug, status: 'published' }).lean()
-    if (!blog) {
+    const blog = await prisma.blog.findUnique({
+      where: { slug }
+    })
+
+    if (!blog || !blog.published) {
       return NextResponse.json({ message: 'Post not found' }, { status: 404 })
     }
+
     return NextResponse.json({ data: blog })
   } catch (error) {
     console.error('[api] blog public detail', error)

@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { connectToDatabase } from '@/lib/db'
-import ContactSubmissionModel from '@/models/ContactSubmission'
+import prisma from '@/lib/prisma'
 import { sendContactEmails } from '@/lib/mailer'
 
 const contactSchema = z.object({
@@ -17,8 +16,10 @@ export async function POST(request: Request) {
     const body = await request.json()
     const payload = contactSchema.parse(body)
 
-    await connectToDatabase()
-    await ContactSubmissionModel.create(payload)
+    await prisma.contactSubmission.create({
+      data: payload
+    })
+
     await sendContactEmails(payload).catch((err) => console.warn('[contact] email skipped', err))
 
     return NextResponse.json({

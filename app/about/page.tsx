@@ -1,23 +1,24 @@
-import Header from '@/components/header'
-import Footer from '@/components/footer'
+import Header from '@/components/common/header'
+import Footer from '@/components/common/footer'
 import { getSiteSettings } from '@/lib/site'
+import prisma from '@/lib/prisma'
 
 const milestones = [
-  { year: '2018', detail: 'CurrencyX launches with 20 currencies and instant FX alerts.' },
+  { year: '2018', detail: 'PayIn Global launches with 20 currencies and instant FX alerts.' },
   { year: '2020', detail: 'Introduced API-first converter widget and compliance automation.' },
   { year: '2023', detail: 'Expanded to 150+ countries with admin CMS and analytics.' },
-  { year: '2025', detail: 'Rolled out Global CurrencyX platform with blog + dashboard bundle.' }
+  { year: '2025', detail: 'Rolled out PayIn Global platform with blog + dashboard bundle.' }
 ]
 
-const team = [
-  { name: 'Mara Iqbal', role: 'CEO & Co-founder' },
-  { name: 'Jonas Weber', role: 'CTO' },
-  { name: 'Olivia Chen', role: 'Head of FX Strategy' },
-  { name: 'Miguel Torres', role: 'Design Lead' }
-]
+export const revalidate = 60
 
 export default async function AboutPage() {
   const settings = await getSiteSettings()
+  const members = await prisma.user.findMany({
+    select: { fullName: true, role: true },
+    orderBy: { createdAt: 'asc' },
+    take: 8
+  })
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -71,10 +72,13 @@ export default async function AboutPage() {
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="text-3xl font-semibold text-center mb-12">Team</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {team.map((member) => (
-                <div key={member.name} className="bg-card border border-border rounded-2xl p-6 text-center">
+              {(members.length ? members : [
+                { fullName: 'Syed Hussain', role: 'CEO & Co-founder' },
+                { fullName: 'Syed Shoiab', role: 'COO & Co-founder' }
+              ]).map((member) => (
+                <div key={member.fullName} className="bg-card border border-border rounded-2xl p-6 text-center">
                   <div className="w-16 h-16 rounded-full mx-auto bg-primary/10 mb-4" />
-                  <p className="font-semibold">{member.name}</p>
+                  <p className="font-semibold">{member.fullName}</p>
                   <p className="text-sm text-muted-foreground">{member.role}</p>
                 </div>
               ))}

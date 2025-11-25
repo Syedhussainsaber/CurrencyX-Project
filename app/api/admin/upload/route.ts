@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
     const dataUri = `data:${file.type};base64,${base64}`
 
     const uploadResponse = await cloudinary.uploader.upload(dataUri, {
-      folder: 'currencyx/blog',
+      folder: 'payinglobal/blog',
       resource_type: 'image'
     })
 

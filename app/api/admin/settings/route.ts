@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { cookies } from 'next/headers'
-import { connectToDatabase } from '@/lib/db'
-import SiteSettingsModel from '@/models/SiteSettings'
+import prisma from '@/lib/prisma'
+import { revalidateTag } from 'next/cache'
 import { verifyAdminToken } from '@/lib/auth'
 
 const settingsSchema = z.object({
@@ -43,10 +43,23 @@ const ensureAdmin = async (request: NextRequest) => {
 }
 
 const fetchSettings = async () => {
-  await connectToDatabase()
-  let settings = await SiteSettingsModel.findOne()
+  let settings = await prisma.siteSettings.findFirst()
   if (!settings) {
-    settings = await SiteSettingsModel.create({})
+    settings = await prisma.siteSettings.create({
+      data: {
+        brandName: 'PayIn Global',
+        heroHeadline: 'International Currency Transfer Provider',
+        heroSubheadline: 'Send money worldwide with competitive rates, zero hidden fees, and 24/7 support.',
+        primaryColor: '#075E54',
+        accentColor: '#25D366',
+        highlightColor: '#128C7E',
+        supportEmail: 'support@payinglobal.com',
+        supportPhone: '+91 9392698184',
+        address: 'Hyderabad, India',
+        metaTitle: 'PayIn Global - Fast International Money Transfer',
+        metaDescription: 'Send money worldwide with competitive rates, no hidden fees, 24/7 support.',
+      }
+    })
   }
   return settings
 }
@@ -72,10 +85,13 @@ export async function POST(request: NextRequest) {
     const payload = settingsSchema.parse(body)
 
     const settings = await fetchSettings()
-    Object.assign(settings, payload)
-    await settings.save()
+    const updated = await prisma.siteSettings.update({
+      where: { id: settings.id },
+      data: payload
+    })
+    revalidateTag('site-settings')
 
-    return NextResponse.json({ success: true, data: settings })
+    return NextResponse.json({ success: true, data: updated })
   } catch (error) {
     console.error('[api] settings save error', error)
     if (error instanceof z.ZodError) {

@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { cookies } from 'next/headers'
-import { connectToDatabase } from '@/lib/db'
-import BlogModel from '@/models/Blog'
+import prisma from '@/lib/prisma'
 import { verifyAdminToken } from '@/lib/auth'
 
 const updateSchema = z.object({
@@ -36,8 +35,9 @@ export async function GET(
   try {
     await ensureAdmin(request)
     const { id } = await params
-    await connectToDatabase()
-    const blog = await BlogModel.findById(id).lean()
+    const blog = await prisma.blog.findUnique({
+      where: { id }
+    })
     if (!blog) {
       return NextResponse.json({ message: 'Post not found' }, { status: 404 })
     }
@@ -61,16 +61,19 @@ export async function PATCH(
     const body = await request.json()
     const payload = updateSchema.parse(body)
 
-    await connectToDatabase()
-    const updated = await BlogModel.findByIdAndUpdate(
-      id,
-      { $set: payload },
-      { new: true }
-    )
-
-    if (!updated) {
-      return NextResponse.json({ message: 'Post not found' }, { status: 404 })
-    }
+    const updated = await prisma.blog.update({
+      where: { id },
+      data: {
+        title: payload.title,
+        excerpt: payload.excerpt,
+        content: payload.content,
+        coverImage: payload.coverImage,
+        tags: payload.tags,
+        published: payload.status ? payload.status === 'published' : undefined,
+        seoTitle: payload.seoTitle,
+        seoDescription: payload.seoDescription
+      }
+    })
 
     return NextResponse.json({ success: true, data: updated })
   } catch (error) {
@@ -80,6 +83,10 @@ export async function PATCH(
     }
     if ((error as Error).message === 'Unauthorized') {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
+    }
+    // Handle record not found
+    if ((error as any).code === 'P2025') {
+      return NextResponse.json({ message: 'Post not found' }, { status: 404 })
     }
     return NextResponse.json({ message: 'Failed to update post' }, { status: 500 })
   }
@@ -92,18 +99,20 @@ export async function DELETE(
   try {
     await ensureAdmin(request)
     const { id } = await params
-    await connectToDatabase()
-    const result = await BlogModel.findByIdAndDelete(id)
 
-    if (!result) {
-      return NextResponse.json({ message: 'Post not found' }, { status: 404 })
-    }
+    await prisma.blog.delete({
+      where: { id }
+    })
 
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('[api] blog delete error', error)
     if ((error as Error).message === 'Unauthorized') {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
+    }
+    // Handle record not found
+    if ((error as any).code === 'P2025') {
+      return NextResponse.json({ message: 'Post not found' }, { status: 404 })
     }
     return NextResponse.json({ message: 'Failed to delete post' }, { status: 500 })
   }

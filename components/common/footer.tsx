@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { Facebook, Linkedin, Twitter, Instagram } from 'lucide-react'
+
 import { useSiteSettings } from '@/components/site-settings-provider'
 
 const socials = [
@@ -20,9 +21,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
             <p className="text-lg font-semibold">{settings.brandName}</p>
-            <p className="text-sm text-muted-foreground mt-2">
-              {settings.metaDescription}
-            </p>
+            <p className="text-sm text-muted-foreground mt-2">{settings.metaDescription}</p>
           </div>
 
           <div>
@@ -51,7 +50,13 @@ export default function Footer() {
                 const href = settings.social?.[key]
                 if (!href) return null
                 return (
-                  <a key={key} href={href} target="_blank" rel="noreferrer" className="text-muted-foreground hover:text-primary transition">
+                  <a
+                    key={key}
+                    href={href}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-muted-foreground hover:text-primary transition"
+                  >
                     <Icon size={20} />
                   </a>
                 )
@@ -61,7 +66,9 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-border pt-6 flex flex-col md:flex-row md:items-center md:justify-between text-sm text-muted-foreground gap-4">
-          <p>© {new Date().getFullYear()} {settings.brandName}. All rights reserved.</p>
+          <p>
+            © {new Date().getFullYear()} {settings.brandName}. All rights reserved.
+          </p>
           <div className="flex gap-6">
             <Link href="/privacy">Privacy</Link>
             <Link href="/terms">Terms</Link>
@@ -72,4 +79,5 @@ export default function Footer() {
     </footer>
   )
 }
+
 

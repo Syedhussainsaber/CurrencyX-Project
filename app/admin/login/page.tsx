@@ -7,6 +7,7 @@ import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { toast } from 'sonner'
 
 const schema = z.object({
   email: z.string().email('Provide a valid email'),
@@ -32,24 +33,33 @@ export default function AdminLogin() {
 
   const onSubmit = async (values: LoginForm) => {
     setError(null)
-    const response = await fetch('/api/admin/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(values)
-    })
+    try {
+      const response = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(values),
+        credentials: 'include'
+      })
 
-    const data = await response.json()
-    if (!response.ok) {
-      setError(data.message || 'Invalid credentials')
-      return
+      const data = await response.json()
+      if (!response.ok) {
+        setError(data.message || 'Incorrect email or password')
+        return
+      }
+      
+      toast.success('Login successful! Redirecting...')
+      router.push('/admin/dashboard')
+      router.refresh()
+    } catch (err) {
+      console.error('[admin login] Error:', err)
+      setError('An error occurred. Please try again.')
     }
-    router.push('/admin/dashboard')
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background/60 via-card to-background flex items-center justify-center p-4">
       <div className="bg-card border border-border rounded-2xl p-8 w-full max-w-md shadow-xl">
-        <h1 className="text-3xl font-semibold mb-2">CurrencyX Admin</h1>
+        <h1 className="text-3xl font-semibold mb-2">PayIn Global Admin</h1>
         <p className="text-muted-foreground mb-8">Authenticate to manage content, rates, and settings.</p>
 
         {error && (
@@ -62,7 +72,7 @@ export default function AdminLogin() {
           <div>
             <Input
               type="email"
-              placeholder="admin@currencyx.com"
+              placeholder="admin@payinglobal.com"
               autoComplete="email"
               {...register('email')}
               aria-invalid={!!errors.email}

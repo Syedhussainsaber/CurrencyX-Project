@@ -1,5 +1,5 @@
-import Header from '@/components/header'
-import Footer from '@/components/footer'
+import Header from '@/components/common/header'
+import Footer from '@/components/common/footer'
 import CurrencyConverter from '@/components/currency-converter'
 import { getSiteSettings } from '@/lib/site'
 import { getPublishedBlogs } from '@/lib/blog'
@@ -9,11 +9,11 @@ import Link from 'next/link'
 export const revalidate = 60
 
 export const metadata = {
-  title: 'Global CurrencyX — Real-Time Currency Converter & FX Intelligence',
+  title: 'PayIn Global — Real-Time Currency Converter & FX Intelligence',
   description:
-    'Convert any currency in real-time, monitor multi-country FX rates, read expert insights, and manage your brand with Global CurrencyX.',
+    'Convert any currency in real-time, monitor multi-country FX rates, read expert insights, and manage your brand with PayIn Global.',
   alternates: {
-    canonical: 'https://currencyx.com'
+    canonical: 'https://payinglobal.com'
   }
 }
 
@@ -54,7 +54,7 @@ const testimonials = [
   {
     name: 'Keisha Adeyemi',
     role: 'FinOps Lead, Remitly Africa',
-    text: 'CurrencyX reduced our payout latency from 2 days to 12 minutes. The admin dashboard gives crystal clear visibility across markets.'
+    text: 'PayIn Global reduced our payout latency from 2 days to 12 minutes. The admin dashboard gives crystal clear visibility across markets.'
   },
   {
     name: 'Marco Silva',
@@ -64,7 +64,7 @@ const testimonials = [
   {
     name: 'Sofia Kramer',
     role: 'VP Finance, AeroLogistics',
-    text: 'We trust CurrencyX for treasury hedging because of their live pricing, audit logs, and automated alerts.'
+    text: 'We trust PayIn Global for treasury hedging because of their live pricing, audit logs, and automated alerts.'
   }
 ]
 
@@ -77,7 +77,7 @@ export default async function Home() {
     '@type': 'FinancialService',
     name: settings.brandName,
     description: settings.metaDescription,
-    url: 'https://currencyx.com',
+    url: 'https://payinglobal.com',
     telephone: settings.supportPhone,
     email: settings.supportEmail,
     areaServed: 'Worldwide',
@@ -86,7 +86,7 @@ export default async function Home() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#F4FFF9] via-white to-white">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-muted/30">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
       <Header />
 
@@ -142,7 +142,7 @@ export default async function Home() {
                     {[1, 2, 3].map((i) => (
                       <span
                         key={i}
-                        className="w-10 h-10 rounded-full border-2 border-white bg-gradient-to-br from-primary to-secondary"
+                        className="w-10 h-10 rounded-full border-2 border-border bg-gradient-to-br from-primary to-secondary"
                       />
                     ))}
                   </div>
@@ -183,7 +183,7 @@ export default async function Home() {
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center max-w-3xl mx-auto mb-12">
               <p className="text-sm uppercase tracking-[0.3em] text-primary">Enterprise-grade</p>
-              <h2 className="text-3xl md:text-4xl font-semibold mt-3">Why choose Global CurrencyX?</h2>
+              <h2 className="text-3xl md:text-4xl font-semibold mt-3">Why choose PayIn Global?</h2>
               <p className="text-muted-foreground mt-3">
                 Reliability, accuracy, and narrative-driven insights for your treasury, product, and marketing teams.
               </p>
@@ -206,7 +206,7 @@ export default async function Home() {
             <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-10 gap-6">
               <div>
                 <p className="text-sm uppercase tracking-[0.3em] text-primary">Insights hub</p>
-                <h2 className="text-3xl font-semibold mt-2">Latest from the CurrencyX blog</h2>
+                <h2 className="text-3xl font-semibold mt-2">Latest from the PayIn Global blog</h2>
                 <p className="text-muted-foreground mt-2">
                   Research-backed stories and regulatory updates curated by our FX desk.
                 </p>
@@ -226,7 +226,7 @@ export default async function Home() {
                     </div>
                   ))
                 : blogs.map((blog) => (
-                    <article key={blog._id.toString()} className="rounded-2xl border border-border bg-card overflow-hidden flex flex-col">
+                    <article key={blog.id.toString()} className="rounded-2xl border border-border bg-card overflow-hidden flex flex-col">
                       <div className="p-6 flex-1 space-y-3">
                         <p className="text-xs uppercase tracking-[0.25em] text-primary">
                           {new Date(blog.publishedAt || blog.createdAt).toLocaleDateString()}
@@ -250,7 +250,7 @@ export default async function Home() {
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {testimonials.map((testimonial) => (
-                <div key={testimonial.name} className="bg-white/10 rounded-2xl p-6 shadow-lg border border-white/20">
+                <div key={testimonial.name} className="bg-card/10 rounded-2xl p-6 shadow-lg border border-border/20">
                   <p className="text-base leading-relaxed">{testimonial.text}</p>
                   <div className="mt-6">
                     <p className="font-semibold">{testimonial.name}</p>

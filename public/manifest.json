@@ -1,6 +1,6 @@
 {
-  "name": "CurrencyX - International Money Transfer",
-  "short_name": "CurrencyX",
+  "name": "PayIn Global - International Money Transfer",
+  "short_name": "PayIn Global",
   "description": "Fast, secure international money transfer with competitive exchange rates",
   "start_url": "/",
   "display": "standalone",

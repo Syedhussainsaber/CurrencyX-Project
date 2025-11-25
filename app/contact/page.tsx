@@ -1,8 +1,9 @@
 'use client'
 
-import Header from '@/components/header'
-import Footer from '@/components/footer'
+import Header from '@/components/common/header'
+import Footer from '@/components/common/footer'
 import { Mail, Phone, MapPin, CheckCircle, AlertCircle } from 'lucide-react'
+import { toast } from 'sonner'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -51,9 +52,12 @@ export default function Contact() {
 
       setSubmitted(true)
       reset()
+      toast.success('Message sent successfully! We\'ll get back to you soon.')
       setTimeout(() => setSubmitted(false), 5000)
     } catch (error) {
-      setFormError((error as Error).message)
+      const errorMessage = (error as Error).message
+      setFormError(errorMessage)
+      toast.error(errorMessage)
     }
   }
 

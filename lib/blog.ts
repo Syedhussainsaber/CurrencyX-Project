@@ -1,25 +1,34 @@
 import { cache } from 'react'
-import { connectToDatabase } from './db'
-import BlogModel, { type BlogDocument } from '@/models/Blog'
+import prisma from '@/lib/prisma'
 
 export const getPublishedBlogs = cache(async (limit = 6) => {
-  await connectToDatabase()
-  const blogs = await BlogModel.find({ status: 'published' })
-    .sort({ publishedAt: -1, createdAt: -1 })
-    .limit(limit)
-    .lean<BlogDocument[]>()
+  const blogs = await prisma.blog.findMany({
+    where: { published: true },
+    orderBy: [
+      { publishedAt: 'desc' },
+      { createdAt: 'desc' }
+    ],
+    take: limit,
+    include: { author: true }
+  })
   return blogs
 })
 
 export const getBlogBySlug = cache(async (slug: string) => {
-  await connectToDatabase()
-  const blog = await BlogModel.findOne({ slug, status: 'published' }).lean<BlogDocument>()
-  return blog
+  const blog = await prisma.blog.findUnique({
+    where: { slug },
+    include: { author: true }
+  })
+  if (blog && blog.published) {
+    return blog
+  }
+  return null
 })
 
 export const getBlogById = async (id: string) => {
-  await connectToDatabase()
-  const blog = await BlogModel.findById(id).lean<BlogDocument>()
+  const blog = await prisma.blog.findUnique({
+    where: { id }
+  })
   return blog
 }
 

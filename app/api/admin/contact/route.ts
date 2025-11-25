@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { cookies } from 'next/headers'
 import { verifyAdminToken } from '@/lib/auth'
-import { connectToDatabase } from '@/lib/db'
-import ContactSubmissionModel from '@/models/ContactSubmission'
+import prisma from '@/lib/prisma'
 
 const updateSchema = z.object({
   status: z.enum(['new', 'responded'])
@@ -24,8 +23,9 @@ const ensureAdmin = async (request: NextRequest) => {
 export async function GET(request: NextRequest) {
   try {
     await ensureAdmin(request)
-    await connectToDatabase()
-    const submissions = await ContactSubmissionModel.find().sort({ createdAt: -1 }).lean()
+    const submissions = await prisma.contactSubmission.findMany({
+      orderBy: { createdAt: 'desc' }
+    })
     return NextResponse.json({ data: submissions })
   } catch (error) {
     console.error('[api] contact list error', error)
@@ -42,16 +42,10 @@ export async function PATCH(request: NextRequest) {
     const body = await request.json()
     const payload = updateSchema.extend({ id: z.string() }).parse(body)
 
-    await connectToDatabase()
-    const updated = await ContactSubmissionModel.findByIdAndUpdate(
-      payload.id,
-      { status: payload.status },
-      { new: true }
-    )
-
-    if (!updated) {
-      return NextResponse.json({ message: 'Submission not found' }, { status: 404 })
-    }
+    const updated = await prisma.contactSubmission.update({
+      where: { id: payload.id },
+      data: { status: payload.status }
+    })
 
     return NextResponse.json({ success: true, data: updated })
   } catch (error) {
@@ -61,6 +55,10 @@ export async function PATCH(request: NextRequest) {
     }
     if ((error as Error).message === 'Unauthorized') {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
+    }
+    // Handle record not found
+    if ((error as any).code === 'P2025') {
+      return NextResponse.json({ message: 'Submission not found' }, { status: 404 })
     }
     return NextResponse.json({ message: 'Failed to update submission' }, { status: 500 })
   }

@@ -1,7 +1,6 @@
 import NodeCache from 'node-cache'
 import { getServerEnv } from './env'
-import { connectToDatabase } from './db'
-import RateCacheModel from '@/models/RateCache'
+import prisma from '@/lib/prisma'
 
 const memoryCache = new NodeCache({ stdTTL: 60 * 5 }) // 5 minutes
 
@@ -22,37 +21,98 @@ const normalizeRates = (rates: Record<string, number>) => {
   return normalized
 }
 
+// Try free exchangerate-api.io first (no API key required)
+const fetchFromFreeAPI = async (base: string): Promise<CurrencyRatesPayload | null> => {
+  try {
+    const url = `https://open.er-api.com/v6/latest/${base}`
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 5000) // 5s timeout
+
+    const response = await fetch(url, {
+      cache: 'no-store',
+      signal: controller.signal
+    })
+    clearTimeout(timeoutId)
+
+    if (!response.ok) {
+      return null
+    }
+
+    const data = await response.json()
+    const rates = normalizeRates(data?.rates || {})
+
+    if (!Object.keys(rates).length) {
+      return null
+    }
+
+    return {
+      base: base.toUpperCase(),
+      rates,
+      fetchedAt: new Date().toISOString(),
+      provider: 'exchangerate-api'
+    }
+  } catch (error) {
+    if ((error as Error).name !== 'AbortError') {
+      console.warn('[currency] Free API error:', error instanceof Error ? error.message : String(error))
+    }
+    return null
+  }
+}
+
 const fetchFromRemote = async (base: string): Promise<CurrencyRatesPayload | null> => {
   const env = getServerEnv()
 
+  // First, try free API (exchangerate-api.io)
+  const freeRates = await fetchFromFreeAPI(base)
+  if (freeRates) {
+    return freeRates
+  }
+
+  // Fall back to configured API if key is provided
   if (!env.CURRENCY_API_KEY) {
-    console.warn('[currency] CURRENCY_API_KEY missing, cannot fetch remote rates')
+    console.warn('[currency] CURRENCY_API_KEY missing, free API failed, cannot fetch remote rates')
     return null
   }
 
-  const url = new URL(env.CURRENCY_API_BASE_URL)
-  url.searchParams.set('from', base)
-  url.searchParams.set('api_key', env.CURRENCY_API_KEY)
+  try {
+    const url = new URL(env.CURRENCY_API_BASE_URL)
+    url.searchParams.set('from', base)
+    url.searchParams.set('api_key', env.CURRENCY_API_KEY)
 
-  const response = await fetch(url.toString(), { cache: 'no-store' })
-  if (!response.ok) {
-    console.error('[currency] Remote provider error', await response.text())
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 10000) // 10s timeout
+
+    const response = await fetch(url.toString(), {
+      cache: 'no-store',
+      signal: controller.signal
+    })
+    clearTimeout(timeoutId)
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('[currency] Configured API error:', errorText)
+      return null
+    }
+
+    const data = await response.json()
+    const rates = normalizeRates(data?.results || data?.rates || {})
+
+    if (!Object.keys(rates).length) {
+      console.error('[currency] Configured API returned empty rates payload')
+      return null
+    }
+
+    return {
+      base: base.toUpperCase(),
+      rates,
+      fetchedAt: new Date().toISOString(),
+      provider: data?.provider || 'fastforex'
+    }
+  } catch (error) {
+    if ((error as Error).name !== 'AbortError') {
+      console.error('[currency] Configured API fetch error:', error instanceof Error ? error.message : String(error))
+    }
     return null
-  }
-
-  const data = await response.json()
-  const rates = normalizeRates(data?.results || data?.rates || {})
-
-  if (!Object.keys(rates).length) {
-    console.error('[currency] Remote provider returned empty rates payload')
-    return null
-  }
-
-  return {
-    base,
-    rates,
-    fetchedAt: new Date().toISOString(),
-    provider: data?.provider || 'fastforex'
   }
 }
 
@@ -87,7 +147,7 @@ const getMockRates = (base: string): CurrencyRatesPayload => {
 
   const baseUpper = base.toUpperCase()
   const allRates: Record<string, number> = {}
-  
+
   // If base is USD, use rates directly
   if (baseUpper === 'USD') {
     Object.entries(usdRates).forEach(([code, rate]) => {
@@ -98,7 +158,7 @@ const getMockRates = (base: string): CurrencyRatesPayload => {
     // Get base currency rate against USD
     const baseToUsd = usdRates[baseUpper] || 1
     const usdToBase = baseToUsd > 0 ? 1 / baseToUsd : 1
-    
+
     // Convert all USD rates to base currency rates
     Object.entries(usdRates).forEach(([code, usdRate]) => {
       if (code === baseUpper) {
@@ -108,7 +168,7 @@ const getMockRates = (base: string): CurrencyRatesPayload => {
         allRates[code] = usdToBase * usdRate
       }
     })
-    
+
     // Add USD rate
     allRates['USD'] = baseToUsd > 0 ? baseToUsd : 1
     allRates[baseUpper] = 1
@@ -126,67 +186,111 @@ export const getRates = async (baseCurrency: string): Promise<CurrencyRatesPaylo
   const base = baseCurrency.toUpperCase()
   const cacheKey = `rates:${base}`
 
+  // Check memory cache first (performance optimization)
   const cached = memoryCache.get<CurrencyRatesPayload>(cacheKey)
   if (cached) {
     return cached
   }
 
   try {
-    await connectToDatabase()
-    const dbRecord = await RateCacheModel.findOne({ base })
+    // Check database for existing rates
+    const dbRecord = await prisma.rateCache.findUnique({
+      where: { base }
+    })
 
-    if (dbRecord && dbRecord.expiresAt > new Date()) {
+    // If we have valid rates in database, use them
+    if (dbRecord && new Date(dbRecord.expiresAt) > new Date()) {
       const payload: CurrencyRatesPayload = {
         base,
-        rates: dbRecord.rates,
+        rates: dbRecord.rates as Record<string, number>,
         fetchedAt: dbRecord.fetchedAt.toISOString(),
         provider: dbRecord.provider || 'database'
       }
+      // Cache in memory for faster subsequent access
       memoryCache.set(cacheKey, payload)
       return payload
     }
 
+    // If database rates expired or don't exist, fetch from API
     const remote = await fetchFromRemote(base)
     if (remote) {
       const expiresAt = new Date(Date.now() + 1000 * 60 * 10) // 10 minutes TTL
+
+      // Always persist to Postgres - this is the source of truth
       try {
-        await RateCacheModel.findOneAndUpdate(
-          { base },
-          {
-            base,
+        await prisma.rateCache.upsert({
+          where: { base },
+          update: {
             rates: remote.rates,
-            fetchedAt: remote.fetchedAt,
+            fetchedAt: new Date(remote.fetchedAt),
             expiresAt,
             provider: remote.provider
           },
-          { upsert: true }
-        )
+          create: {
+            base,
+            rates: remote.rates,
+            fetchedAt: new Date(remote.fetchedAt),
+            expiresAt,
+            provider: remote.provider
+          }
+        })
       } catch (dbError) {
-        console.warn('[currency] Failed to save rates to database, using memory cache only')
+        console.error('[currency] Failed to save rates to Postgres:', dbError)
       }
 
+      // Cache in memory for performance
       memoryCache.set(cacheKey, remote)
       return remote
     }
 
-    // Fallback to database record even if expired
+    // If API failed but we have database record (even if expired), use it
     if (dbRecord) {
       const fallback: CurrencyRatesPayload = {
         base,
-        rates: dbRecord.rates,
+        rates: dbRecord.rates as Record<string, number>,
         fetchedAt: dbRecord.fetchedAt.toISOString(),
         provider: dbRecord.provider || 'database'
       }
       memoryCache.set(cacheKey, fallback)
       return fallback
     }
-  } catch (error) {
-    console.warn('[currency] Database/API unavailable, using mock rates:', error instanceof Error ? error.message : String(error))
-  }
 
-  // Final fallback: use mock rates
-  const mockRates = getMockRates(base)
-  memoryCache.set(cacheKey, mockRates)
-  return mockRates
+    // Only use mock rates if database is completely unavailable
+    console.warn('[currency] No database or API rates available, using mock rates as last resort')
+    const mockRates = getMockRates(base)
+
+    // Try to save mock rates to database for future use
+    try {
+      const expiresAt = new Date(Date.now() + 1000 * 60 * 60) // 1 hour for mock data
+      await prisma.rateCache.upsert({
+        where: { base },
+        update: {
+          rates: mockRates.rates,
+          fetchedAt: new Date(mockRates.fetchedAt),
+          expiresAt,
+          provider: 'mock'
+        },
+        create: {
+          base,
+          rates: mockRates.rates,
+          fetchedAt: new Date(mockRates.fetchedAt),
+          expiresAt,
+          provider: 'mock'
+        }
+      })
+    } catch (dbError) {
+      console.error('[currency] Failed to save mock rates to Postgres:', dbError)
+    }
+
+    memoryCache.set(cacheKey, mockRates)
+    return mockRates
+  } catch (error) {
+    console.error('[currency] Database connection error:', error instanceof Error ? error.message : String(error))
+
+    // Absolute last resort: mock rates
+    const mockRates = getMockRates(base)
+    memoryCache.set(cacheKey, mockRates)
+    return mockRates
+  }
 }
 

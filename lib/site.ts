@@ -1,6 +1,5 @@
-import { cache } from 'react'
-import { connectToDatabase } from './db'
-import SiteSettingsModel from '@/models/SiteSettings'
+import { unstable_cache } from 'next/cache'
+import prisma from '@/lib/prisma'
 
 export interface SiteSettingsPayload {
   id: string
@@ -27,44 +26,66 @@ export interface SiteSettingsPayload {
   createdAt: string
 }
 
-export const getSiteSettings = cache(async (): Promise<SiteSettingsPayload> => {
-      try {
-        await connectToDatabase()
-        let settings = await SiteSettingsModel.findOne().lean()
-        if (!settings) {
-          const created = await SiteSettingsModel.create({})
-          settings = await SiteSettingsModel.findById(created._id).lean()
-        }
+export const getSiteSettings = unstable_cache(async (): Promise<SiteSettingsPayload> => {
+  try {
+    let settings = await prisma.siteSettings.findFirst()
 
-        if (!settings) {
-          throw new Error('Failed to create site settings')
+    if (!settings) {
+      // Create default settings if none exist
+      settings = await prisma.siteSettings.create({
+        data: {
+          brandName: 'PayIn Global',
+          heroHeadline: 'International Currency Transfer Provider',
+          heroSubheadline: 'Send money worldwide with competitive rates, zero hidden fees, and 24/7 support.',
+          primaryColor: '#075E54',
+          accentColor: '#25D366',
+          highlightColor: '#128C7E',
+          supportEmail: 'support@payinglobal.com',
+          supportPhone: '+91 9392698184',
+          address: 'Hyderabad, India',
+          metaTitle: 'PayIn Global - Fast International Money Transfer',
+          metaDescription: 'Send money worldwide with competitive rates, no hidden fees, 24/7 support.',
         }
+      })
+    }
+    // Normalize existing records to the new brand
+    if (settings.brandName !== 'PayIn Global' || settings.supportPhone !== '+91 9392698184') {
+      settings = await prisma.siteSettings.update({
+        where: { id: settings.id },
+        data: {
+          brandName: 'PayIn Global',
+          metaTitle: 'PayIn Global - Fast International Money Transfer',
+          supportEmail: settings.supportEmail || 'support@payinglobal.com',
+          supportPhone: '+91 9392698184'
+        }
+      })
+    }
 
     return {
-      id: settings._id.toString(),
+      id: settings.id,
       brandName: settings.brandName,
       heroHeadline: settings.heroHeadline,
       heroSubheadline: settings.heroSubheadline,
       primaryColor: settings.primaryColor,
       accentColor: settings.accentColor,
       highlightColor: settings.highlightColor,
-      logoUrl: settings.logoUrl,
-      faviconUrl: settings.faviconUrl,
+      logoUrl: settings.logoUrl || undefined,
+      faviconUrl: settings.faviconUrl || undefined,
       supportEmail: settings.supportEmail,
       supportPhone: settings.supportPhone,
       address: settings.address,
       metaTitle: settings.metaTitle,
       metaDescription: settings.metaDescription,
-      social: settings.social,
-      updatedAt: settings.updatedAt instanceof Date ? settings.updatedAt.toISOString() : new Date(settings.updatedAt).toISOString(),
-      createdAt: settings.createdAt instanceof Date ? settings.createdAt.toISOString() : new Date(settings.createdAt).toISOString()
+      social: settings.social as any,
+      updatedAt: settings.updatedAt.toISOString(),
+      createdAt: settings.createdAt.toISOString()
     }
   } catch (error) {
     console.warn('[site] Database connection failed, using defaults:', error instanceof Error ? error.message : String(error))
     // Return default settings if database is unavailable
     return {
       id: 'default',
-      brandName: 'CurrencyX',
+      brandName: 'PayIn Global',
       heroHeadline: 'International Currency Transfer Provider',
       heroSubheadline: 'Send money worldwide with competitive rates, zero hidden fees, and 24/7 support.',
       primaryColor: '#075E54',
@@ -72,15 +93,15 @@ export const getSiteSettings = cache(async (): Promise<SiteSettingsPayload> => {
       highlightColor: '#128C7E',
       logoUrl: undefined,
       faviconUrl: undefined,
-      supportEmail: 'support@currencyx.com',
-      supportPhone: '+1 (800) 123-4567',
-      address: '123 Finance St, New York, NY 10001',
-      metaTitle: 'CurrencyX - Fast International Money Transfer',
+      supportEmail: 'support@payinglobal.com',
+      supportPhone: '+91 9392698184',
+      address: 'Hyderabad, India',
+      metaTitle: 'PayIn Global - Fast International Money Transfer',
       metaDescription: 'Send money worldwide with competitive rates, no hidden fees, 24/7 support.',
       social: undefined,
       updatedAt: new Date().toISOString(),
       createdAt: new Date().toISOString()
     }
   }
-})
+}, ['site-settings'], { revalidate: 60 })
 

@@ -9,6 +9,9 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { useState } from 'react'
+import { toast } from 'sonner'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { AlertCircle } from 'lucide-react'
 
 const schema = z.object({
   title: z.string().min(4),
@@ -77,9 +80,12 @@ export default function NewBlogPost() {
         const data = await response.json()
         throw new Error(data.message || 'Failed to create post')
       }
+      toast.success('Post created successfully!')
       router.push('/admin/blog')
     } catch (err) {
-      setError((err as Error).message)
+      const errorMessage = (err as Error).message
+      setError(errorMessage)
+      toast.error(errorMessage)
     }
   }
 
@@ -92,8 +98,13 @@ export default function NewBlogPost() {
         <h1 className="text-3xl font-bold">Create New Post</h1>
       </div>
 
-      <div className="bg-card border border-border rounded-xl p-8 max-w-4xl">
-        {error && <p className="mb-4 text-sm text-destructive">{error}</p>}
+      <div className="bg-card border border-border rounded-xl p-6 sm:p-8 max-w-4xl">
+        {error && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div>
             <label className="text-sm font-semibold mb-2 block">Title</label>

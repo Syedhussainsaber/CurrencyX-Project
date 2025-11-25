@@ -1,16 +1,18 @@
-import Header from '@/components/header'
-import Footer from '@/components/footer'
+import Header from '@/components/common/header'
+import Footer from '@/components/common/footer'
+import { getSiteSettings } from '@/lib/site'
 import { Shield, Lock, Eye, FileText } from 'lucide-react'
 
 export const metadata = {
-  title: 'Privacy Policy - CurrencyX',
-  description: 'Read CurrencyX privacy policy to understand how we collect, use, and protect your personal information.',
+  title: 'Privacy Policy - PayIn Global',
+  description: 'Read PayIn Global privacy policy to understand how we collect, use, and protect your personal information.',
   alternates: {
-    canonical: 'https://currencyx.com/privacy'
+    canonical: 'https://payinglobal.com/privacy'
   }
 }
 
-export default function PrivacyPage() {
+export default async function PrivacyPage() {
+  const settings = await getSiteSettings()
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
@@ -37,7 +39,7 @@ export default function PrivacyPage() {
                   Introduction
                 </h2>
                 <p className="text-muted-foreground">
-                  At CurrencyX, we are committed to protecting your privacy and ensuring the security of your personal information. 
+                  At PayIn Global, we are committed to protecting your privacy and ensuring the security of your personal information. 
                   This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our 
                   currency conversion services, website, and related applications.
                 </p>
@@ -138,7 +140,7 @@ export default function PrivacyPage() {
               <div>
                 <h2 className="text-2xl font-bold mb-4">Third-Party Services</h2>
                 <p className="text-muted-foreground">
-                  Our website may contain links to third-party websites or services that are not owned or controlled by CurrencyX. 
+                  Our website may contain links to third-party websites or services that are not owned or controlled by PayIn Global. 
                   We are not responsible for the privacy practices of these third parties. We encourage you to review the privacy 
                   policies of any third-party services you access.
                 </p>
@@ -168,10 +170,10 @@ export default function PrivacyPage() {
                   If you have any questions about this Privacy Policy or our data practices, please contact us at:
                 </p>
                 <div className="mt-4 p-4 bg-card border border-border rounded-lg">
-                  <p className="font-semibold">CurrencyX Privacy Team</p>
-                  <p className="text-muted-foreground">Email: privacy@currencyx.com</p>
-                  <p className="text-muted-foreground">Phone: +1 (800) 123-4567</p>
-                  <p className="text-muted-foreground">Address: 123 Finance St, New York, NY 10001, USA</p>
+                  <p className="font-semibold">PayIn Global Privacy Team</p>
+                  <p className="text-muted-foreground">Email: privacy@payinglobal.com</p>
+                  <p className="text-muted-foreground">Phone: {settings.supportPhone}</p>
+                  <p className="text-muted-foreground">Address: Hyderabad, India</p>
                 </div>
               </div>
             </div>

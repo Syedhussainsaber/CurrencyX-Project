@@ -8,7 +8,7 @@ Disallow: /api/
 Disallow: /.next/
 
 # Sitemap location
-Sitemap: https://currencyx.com/sitemap.xml
+Sitemap: https://payinglobal.com/sitemap.xml
 
 # Crawl delay (requests per second)
 Crawl-delay: 1

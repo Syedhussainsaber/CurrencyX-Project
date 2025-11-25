@@ -1,0 +1,105 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  user
+  admin
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  password      String
+  fullName      String    @map("full_name")
+  role          Role      @default(user)
+  address       String    @default("Hyderabad, India")
+  isActive      Boolean   @default(true) @map("is_active")
+  emailVerified Boolean   @default(false) @map("email_verified")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  
+  blogs         Blog[]
+
+  @@map("users")
+}
+
+model Blog {
+  id             String    @id @default(uuid())
+  title          String
+  slug           String    @unique
+  excerpt        String
+  content        String
+  coverImage     String?   @map("cover_image")
+  
+  authorId       String?   @map("author_id")
+  author         User?     @relation(fields: [authorId], references: [id])
+  
+  // Keeping authorName for legacy support if needed, or we can migrate data to User table.
+  // For now, let's rely on the relation.
+  
+  tags           String[]
+  published      Boolean   @default(false)
+  readingTime    Int       @default(5) @map("reading_time")
+  publishedAt    DateTime? @map("published_at")
+  seoTitle       String?   @map("seo_title")
+  seoDescription String?   @map("seo_description")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  @@map("blogs")
+}
+
+model SiteSettings {
+  id              String   @id @default(uuid())
+  brandName       String   @default("PayIn Global") @map("brand_name")
+  heroHeadline    String   @default("International Currency Transfer Provider") @map("hero_headline")
+  heroSubheadline String   @default("Send money worldwide with competitive rates, zero hidden fees, and 24/7 support.") @map("hero_subheadline")
+  primaryColor    String   @default("#25D366") @map("primary_color")
+  accentColor     String   @default("#25D366") @map("accent_color")
+  highlightColor  String   @default("#128C7E") @map("highlight_color")
+  logoUrl         String?  @map("logo_url")
+  faviconUrl      String?  @map("favicon_url")
+  supportEmail    String   @default("support@payinglobal.com") @map("support_email")
+  supportPhone    String   @default("+1 (800) 123-4567") @map("support_phone")
+  address         String   @default("Hyderabad, India")
+  metaTitle       String   @default("PayIn Global - Fast International Money Transfer") @map("meta_title")
+  metaDescription String   @default("Send money worldwide with competitive rates, no hidden fees, 24/7 support.") @map("meta_description")
+  social          Json?
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("site_settings")
+}
+
+model RateCache {
+  id        String   @id @default(uuid())
+  base      String   @unique
+  rates     Json
+  fetchedAt DateTime @map("fetched_at")
+  expiresAt DateTime @map("expires_at")
+  provider  String   @default("unknown")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("rate_cache")
+}
+
+model ContactSubmission {
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  phone     String?
+  subject   String
+  message   String
+  status    String   @default("new") // 'new' | 'responded'
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("contact_submissions")
+}

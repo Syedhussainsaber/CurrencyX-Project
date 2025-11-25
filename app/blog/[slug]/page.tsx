@@ -1,5 +1,5 @@
-import Header from '@/components/header'
-import Footer from '@/components/footer'
+import Header from '@/components/common/header'
+import Footer from '@/components/common/footer'
 import { getBlogBySlug } from '@/lib/blog'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
@@ -13,17 +13,17 @@ export async function generateMetadata({ params }: BlogPageProps): Promise<Metad
   const { slug } = await params
   const post = await getBlogBySlug(slug)
   if (!post) {
-    return { title: 'Post not found — CurrencyX Blog' }
+    return { title: 'Post not found — PayIn Global Blog' }
   }
 
   return {
-    title: `${post.title} — CurrencyX Blog`,
+    title: `${post.title} — PayIn Global Blog`,
     description: post.excerpt,
     openGraph: {
       title: post.title,
       description: post.excerpt,
       type: 'article',
-      url: `https://currencyx.com/blog/${post.slug}`,
+      url: `https://payinglobal.com/blog/${post.slug}`,
       publishedTime: post.publishedAt?.toISOString(),
       images: post.coverImage ? [{ url: post.coverImage }] : undefined
     }
@@ -38,7 +38,7 @@ export default async function BlogPostPage({ params }: BlogPageProps) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-background">
       <Header />
       <main className="flex-1">
         <section className="py-16 md:py-24 bg-gradient-to-b from-muted/40 to-white">
@@ -46,7 +46,7 @@ export default async function BlogPostPage({ params }: BlogPageProps) {
             <p className="text-xs uppercase tracking-[0.3em] text-primary">Insights</p>
             <h1 className="text-4xl md:text-5xl font-semibold mt-4">{post.title}</h1>
             <div className="mt-4 text-sm text-muted-foreground flex flex-wrap gap-4">
-              <span>{post.author}</span>
+              <span>{post.author?.fullName ?? 'Admin'}</span>
               <span>•</span>
               <span>{formatDate(post.publishedAt || post.createdAt)}</span>
               <span>•</span>

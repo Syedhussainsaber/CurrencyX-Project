@@ -10,7 +10,8 @@ import {
   RefreshCw,
   Search,
   ShieldCheck,
-  Zap
+  Zap,
+  AlertCircle
 } from 'lucide-react'
 import { currencies, getCurrencyMeta } from '@/data/currencies'
 import { cn, formatDate } from '@/lib/utils'
@@ -208,7 +209,13 @@ export default function CurrencyConverter() {
         </p>
         <p className="mt-2 text-sm opacity-80 flex items-center gap-2">
           <ShieldCheck size={16} />
-          {rates?.provider ? `Powered by ${rates.provider}` : 'Bank-grade data source'}
+          {rates?.provider === 'mock' ? (
+            <span className="text-yellow-200">Using approximate rates (API unavailable)</span>
+          ) : rates?.provider ? (
+            `Powered by ${rates.provider}`
+          ) : (
+            'Bank-grade data source'
+          )}
         </p>
       </div>
 
@@ -275,8 +282,24 @@ export default function CurrencyConverter() {
         </div>
 
         {error && (
-          <div className="p-4 bg-destructive/10 text-destructive text-sm rounded-lg border border-destructive/30">
-            {error}
+          <div className="p-4 bg-destructive/10 text-destructive text-sm rounded-lg border border-destructive/30 flex items-start gap-2">
+            <AlertCircle size={16} className="mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="font-medium">Unable to fetch live rates</p>
+              <p className="text-xs mt-1 opacity-90">{error}</p>
+            </div>
+          </div>
+        )}
+        
+        {!error && rates?.provider === 'mock' && (
+          <div className="p-4 bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 text-sm rounded-lg border border-yellow-500/30 flex items-start gap-2">
+            <AlertCircle size={16} className="mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="font-medium">Using approximate rates</p>
+              <p className="text-xs mt-1 opacity-90">
+                Live exchange rates are temporarily unavailable. Showing approximate values for reference only.
+              </p>
+            </div>
           </div>
         )}
 

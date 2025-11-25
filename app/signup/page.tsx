@@ -1,7 +1,7 @@
 'use client'
 
-import Header from '@/components/header'
-import Footer from '@/components/footer'
+import Header from '@/components/common/header'
+import Footer from '@/components/common/footer'
 import Link from 'next/link'
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -58,14 +58,19 @@ export default function SignUp() {
       const result = await res.json()
 
       if (res.ok) {
-        toast.success("Account created! Redirecting to login...")
-        router.push('/login')
+        toast.success("Account created successfully! Redirecting...")
+        // Token is set via httpOnly cookie, user is automatically logged in
+        router.push('/')
+        router.refresh()
       } else {
-        setError(result.message || 'Signup failed')
+        const errorMsg = result.message || 'Failed to create account. Please try again.'
+        setError(errorMsg)
+        toast.error(errorMsg)
       }
     } catch (err) {
-      console.log("[v0] Signup error:", err)
+      console.error("[signup] Error:", err)
       setError('An error occurred. Please try again.')
+      toast.error('An error occurred. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -79,7 +84,7 @@ export default function SignUp() {
         <div className="max-w-md mx-auto px-4">
           <div className="bg-card border border-border rounded-xl p-8">
             <h1 className="text-2xl font-bold mb-2">Create Account</h1>
-            <p className="text-muted-foreground mb-6">Join CurrencyX today and start sending money instantly.</p>
+            <p className="text-muted-foreground mb-6">Join PayIn Global today and start sending money instantly.</p>
 
             {error && (
               <Alert variant="destructive" className="mb-4">

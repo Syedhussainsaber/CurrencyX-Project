@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { verifyAdminToken } from '@/lib/auth'
-import { connectToDatabase } from '@/lib/db'
-import BlogModel from '@/models/Blog'
-import ContactSubmissionModel from '@/models/ContactSubmission'
-import RateCacheModel from '@/models/RateCache'
+import prisma from '@/lib/prisma'
 
 const ensureAdmin = async (request: NextRequest) => {
   const bearer = request.headers.get('authorization')
@@ -18,32 +15,48 @@ const ensureAdmin = async (request: NextRequest) => {
 export async function GET(request: NextRequest) {
   try {
     await ensureAdmin(request)
-    await connectToDatabase()
 
-    const [blogCounts, contacts, rates] = await Promise.all([
-      BlogModel.aggregate([
-        {
-          $group: {
-            _id: '$status',
-            count: { $sum: 1 }
-          }
+    const [blogStats, contactStats, rates] = await Promise.all([
+      prisma.blog.groupBy({
+        by: ['published'],
+        _count: {
+          published: true
         }
-      ]),
-      ContactSubmissionModel.aggregate([
-        {
-          $group: {
-            _id: '$status',
-            count: { $sum: 1 }
-          }
+      }),
+      prisma.contactSubmission.groupBy({
+        by: ['status'],
+        _count: {
+          status: true
         }
-      ]),
-      RateCacheModel.find().sort({ fetchedAt: -1 }).limit(5).lean()
+      }),
+      prisma.rateCache.findMany({
+        orderBy: { fetchedAt: 'desc' },
+        take: 5
+      })
     ])
+
+    // Map Prisma results to match expected frontend format
+    const blogCounts = blogStats.map(stat => ({
+      _id: stat.published ? 'published' : 'draft',
+      count: stat._count.published
+    }))
+
+    const contacts = contactStats.map(stat => ({
+      _id: stat.status,
+      count: stat._count.status
+    }))
 
     return NextResponse.json({
       blogs: blogCounts,
       contacts,
-      rates
+      rates: rates.map(r => ({
+        ...r,
+        fetchedAt: r.fetchedAt.toISOString(),
+        expiresAt: r.expiresAt.toISOString(),
+        createdAt: r.createdAt.toISOString(),
+        updatedAt: r.updatedAt.toISOString(),
+        rates: r.rates as Record<string, number>
+      }))
     })
   } catch (error) {
     console.error('[api] overview error', error)

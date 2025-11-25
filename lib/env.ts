@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 const serverEnvSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
-  MONGODB_URI: z.string().default('mongodb://localhost:27017/currencyx').refine(
+  MONGODB_URI: z.string().default('mongodb://localhost:27017/payinglobal').refine(
     (val) => {
       try {
         new URL(val)
@@ -13,8 +13,8 @@ const serverEnvSchema = z.object({
     },
     { message: 'MONGODB_URI must be a valid MongoDB connection string' }
   ),
-  ADMIN_EMAIL: z.string().email().default('admin@currencyx.com'),
-  ADMIN_PASSWORD_HASH: z.string().default('$2a$10$placeholder.hash.for.development.only.change.in.production').refine(
+  ADMIN_EMAIL: z.string().email().default('syedhussainsaber8@gmail.com'),
+  ADMIN_PASSWORD_HASH: z.string().default('$2y$10$2BNwN/p9klz19ezI9uTFmeUcF9ySsJA12usB7lm3R9xffxuW.Evq2').refine(
     (val) => val.length >= 32,
     { message: 'ADMIN_PASSWORD_HASH must be at least 32 characters (bcrypt hash)' }
   ),

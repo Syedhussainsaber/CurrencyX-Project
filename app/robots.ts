@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: ['/admin/', '/api/', '/.next/']
     },
-    sitemap: 'https://currencyx.com/sitemap.xml'
+    sitemap: 'https://payinglobal.com/sitemap.xml'
   }
 }

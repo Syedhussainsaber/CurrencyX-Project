@@ -1,23 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { connectToDatabase } from '@/lib/db'
-import BlogModel from '@/models/Blog'
+import prisma from '@/lib/prisma'
 
 export async function GET(request: NextRequest) {
   try {
-    await connectToDatabase()
     const { searchParams } = request.nextUrl
     const limit = parseInt(searchParams.get('limit') || '12', 10)
     const search = searchParams.get('q')
 
-    const query: Record<string, unknown> = { status: 'published' }
+    const where: any = { published: true }
     if (search) {
-      query.$text = { $search: search }
+      where.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { content: { contains: search, mode: 'insensitive' } },
+        { tags: { has: search } } // Note: 'has' works for array fields in Postgres
+      ]
     }
 
-    const blogs = await BlogModel.find(query)
-      .sort({ publishedAt: -1, createdAt: -1 })
-      .limit(Math.min(limit, 100))
-      .lean()
+    const blogs = await prisma.blog.findMany({
+      where,
+      orderBy: [
+        { publishedAt: 'desc' },
+        { createdAt: 'desc' }
+      ],
+      take: Math.min(limit, 100)
+    })
 
     return NextResponse.json({ data: blogs })
   } catch (error) {

@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { cookies } from 'next/headers'
-import { connectToDatabase } from '@/lib/db'
-import BlogModel from '@/models/Blog'
+import prisma from '@/lib/prisma'
 import { verifyAdminToken } from '@/lib/auth'
 
 const blogSchema = z.object({
@@ -32,11 +31,27 @@ const ensureAdmin = async (request: NextRequest) => {
 export async function GET(request: NextRequest) {
   try {
     await ensureAdmin(request)
-    await connectToDatabase()
     const status = request.nextUrl.searchParams.get('status')
-    const query = status ? { status } : {}
-    const blogs = await BlogModel.find(query).sort({ createdAt: -1 }).lean()
-    return NextResponse.json({ data: blogs })
+
+    const where: any = {}
+    if (status === 'published') where.published = true
+    if (status === 'draft') where.published = false
+
+    const blogs = await prisma.blog.findMany({
+      where,
+      orderBy: { createdAt: 'desc' }
+    })
+
+    // Map boolean published to string status for frontend compatibility if needed
+    // Or frontend should adapt. Assuming frontend expects 'status' field.
+    // I should map it back or update frontend.
+    // Let's map it back to match expected API response structure if possible.
+    const mappedBlogs = blogs.map(b => ({
+      ...b,
+      status: b.published ? 'published' : 'draft'
+    }))
+
+    return NextResponse.json({ data: mappedBlogs })
   } catch (error) {
     console.error('[api] blog list error', error)
     if ((error as Error).message === 'Unauthorized') {
@@ -52,10 +67,22 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const payload = blogSchema.parse(body)
 
-    await connectToDatabase()
-    const created = await BlogModel.create(payload)
+    const created = await prisma.blog.create({
+      data: {
+        title: payload.title,
+        slug: payload.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, ''), // Simple slugify
+        excerpt: payload.excerpt,
+        content: payload.content,
+        coverImage: payload.coverImage,
+        authorId: undefined, // Or link to admin
+        tags: payload.tags || [],
+        published: payload.status === 'published',
+        seoTitle: payload.seoTitle,
+        seoDescription: payload.seoDescription
+      }
+    })
 
-    return NextResponse.json({ success: true, data: created })
+    return NextResponse.json({ success: true, data: { ...created, status: created.published ? 'published' : 'draft' } })
   } catch (error) {
     console.error('[api] blog create error', error)
 
@@ -65,6 +92,11 @@ export async function POST(request: NextRequest) {
 
     if ((error as Error).message === 'Unauthorized') {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Handle unique constraint violation (slug)
+    if ((error as any).code === 'P2002') {
+      return NextResponse.json({ message: 'A post with this title/slug already exists' }, { status: 409 })
     }
 
     return NextResponse.json({ message: 'Failed to create post' }, { status: 500 })
