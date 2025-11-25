@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { cookies } from 'next/headers'
 import prisma from '@/lib/prisma'
-import { Prisma } from '@prisma/client'
 import { verifyAdminToken } from '@/lib/auth'
 
 const updateSchema = z.object({
@@ -86,7 +85,7 @@ export async function PATCH(
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
     }
     // Handle record not found
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+    if ((error as { code?: unknown }).code === 'P2025') {
       return NextResponse.json({ message: 'Post not found' }, { status: 404 })
     }
     return NextResponse.json({ message: 'Failed to update post' }, { status: 500 })
@@ -112,7 +111,7 @@ export async function DELETE(
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
     }
     // Handle record not found
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+    if ((error as { code?: unknown }).code === 'P2025') {
       return NextResponse.json({ message: 'Post not found' }, { status: 404 })
     }
     return NextResponse.json({ message: 'Failed to delete post' }, { status: 500 })
