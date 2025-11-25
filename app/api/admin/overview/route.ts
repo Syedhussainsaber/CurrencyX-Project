@@ -36,12 +36,12 @@ export async function GET(request: NextRequest) {
     ])
 
     // Map Prisma results to match expected frontend format
-    const blogCounts = blogStats.map(stat => ({
+    const blogCounts = blogStats.map((stat: typeof blogStats[number]) => ({
       _id: stat.published ? 'published' : 'draft',
       count: stat._count.published
     }))
 
-    const contacts = contactStats.map(stat => ({
+    const contacts = contactStats.map((stat: typeof contactStats[number]) => ({
       _id: stat.status,
       count: stat._count.status
     }))
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       blogs: blogCounts,
       contacts,
-      rates: rates.map(r => ({
+      rates: rates.map((r: typeof rates[number]) => ({
         ...r,
         fetchedAt: r.fetchedAt.toISOString(),
         expiresAt: r.expiresAt.toISOString(),
