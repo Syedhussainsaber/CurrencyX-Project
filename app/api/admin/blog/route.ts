@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
     // Or frontend should adapt. Assuming frontend expects 'status' field.
     // I should map it back or update frontend.
     // Let's map it back to match expected API response structure if possible.
-    const mappedBlogs = blogs.map(b => ({
+    const mappedBlogs = blogs.map((b: typeof blogs[number]) => ({
       ...b,
       status: b.published ? 'published' : 'draft'
     }))
