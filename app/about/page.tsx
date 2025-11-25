@@ -21,7 +21,7 @@ export default async function AboutPage() {
   })
   const teamMembers: { fullName: string; role?: string | null }[] =
     members.length
-      ? members.map((m) => ({ fullName: m.fullName, role: (m.role as string) || null }))
+      ? members.map((m: { fullName: string; role?: string | null }) => ({ fullName: m.fullName, role: (m.role as string) || null }))
       : [
           { fullName: 'Syed Hussain', role: 'CEO & Co-founder' },
           { fullName: 'Syed Shoiab', role: 'COO & Co-founder' }
