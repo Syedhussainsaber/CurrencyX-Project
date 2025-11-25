@@ -67,8 +67,9 @@ const nextConfig = {
   productionBrowserSourceMaps: false,
 
   typescript: {
-    ignoreBuildErrors: true
-  }
+    ignoreBuildErrors: true,
+  },
+  
 }
 
 export default nextConfig
