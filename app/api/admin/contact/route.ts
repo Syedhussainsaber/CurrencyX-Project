@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { cookies } from 'next/headers'
 import { verifyAdminToken } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import { Prisma } from '@prisma/client'
 
 const updateSchema = z.object({
   status: z.enum(['new', 'responded'])
@@ -57,7 +58,7 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
     }
     // Handle record not found
-    if ((error as any).code === 'P2025') {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
       return NextResponse.json({ message: 'Submission not found' }, { status: 404 })
     }
     return NextResponse.json({ message: 'Failed to update submission' }, { status: 500 })

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { cookies } from 'next/headers'
 import prisma from '@/lib/prisma'
+import { Prisma } from '@prisma/client'
 import { verifyAdminToken } from '@/lib/auth'
 
 const blogSchema = z.object({
@@ -33,7 +34,7 @@ export async function GET(request: NextRequest) {
     await ensureAdmin(request)
     const status = request.nextUrl.searchParams.get('status')
 
-    const where: any = {}
+    const where: Prisma.BlogWhereInput = {}
     if (status === 'published') where.published = true
     if (status === 'draft') where.published = false
 
@@ -95,7 +96,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Handle unique constraint violation (slug)
-    if ((error as any).code === 'P2002') {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
       return NextResponse.json({ message: 'A post with this title/slug already exists' }, { status: 409 })
     }
 

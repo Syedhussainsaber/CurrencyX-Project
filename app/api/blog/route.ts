@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
+import { Prisma } from '@prisma/client'
 
 export async function GET(request: NextRequest) {
   try {
@@ -7,7 +8,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '12', 10)
     const search = searchParams.get('q')
 
-    const where: any = { published: true }
+    const where: Prisma.BlogWhereInput = { published: true }
     if (search) {
       where.OR = [
         { title: { contains: search, mode: 'insensitive' } },

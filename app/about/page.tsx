@@ -14,14 +14,14 @@ export const revalidate = 60
 
 export default async function AboutPage() {
   const settings = await getSiteSettings()
-  const members = await prisma.user.findMany({
+  const members: { fullName: string; role: string | null }[] = await prisma.user.findMany({
     select: { fullName: true, role: true },
     orderBy: { createdAt: 'asc' },
     take: 8
   })
   const teamMembers: { fullName: string; role?: string | null }[] =
     members.length
-      ? members.map((m: { fullName: string; role?: string | null }) => ({ fullName: m.fullName, role: (m.role as string) || null }))
+      ? members.map((m) => ({ fullName: m.fullName, role: m.role }))
       : [
           { fullName: 'Syed Hussain', role: 'CEO & Co-founder' },
           { fullName: 'Syed Shoiab', role: 'COO & Co-founder' }

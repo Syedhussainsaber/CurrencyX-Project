@@ -61,6 +61,16 @@ export const getSiteSettings = unstable_cache(async (): Promise<SiteSettingsPayl
       })
     }
 
+    const social =
+      settings.social && typeof settings.social === 'object'
+        ? (settings.social as {
+            twitter?: string
+            linkedin?: string
+            facebook?: string
+            instagram?: string
+          })
+        : undefined
+
     return {
       id: settings.id,
       brandName: settings.brandName,
@@ -76,7 +86,7 @@ export const getSiteSettings = unstable_cache(async (): Promise<SiteSettingsPayl
       address: settings.address,
       metaTitle: settings.metaTitle,
       metaDescription: settings.metaDescription,
-      social: settings.social as any,
+      social,
       updatedAt: settings.updatedAt.toISOString(),
       createdAt: settings.createdAt.toISOString()
     }
