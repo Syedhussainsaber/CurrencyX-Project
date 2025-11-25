@@ -66,7 +66,7 @@ export default async function BlogPostPage({ params }: BlogPageProps) {
         <section className="py-12">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
             <article className="prose prose-lg max-w-none dark:prose-invert">
-              {post.content.split('\n').map((paragraph, idx) => (
+              {post.content.split('\n').map((paragraph: string, idx: number) => (
                 <p key={idx}>{paragraph}</p>
               ))}
             </article>
