@@ -18,21 +18,7 @@ const serverEnvSchema = z.object({
   ADMIN_EMAIL: z.string().email().default('syed@payinglobal.com'),
   ADMIN_PASSWORD_HASH: z
     .string()
-    .default('')
-    .refine(
-      (val) => {
-        if (!val) return true
-        const isHash = val.startsWith('$2')
-        if (isHash) return val.length >= 32
-        if (isProduction) return false
-        return val.length >= 8
-      },
-      {
-        message: isProduction
-          ? 'ADMIN_PASSWORD_HASH must be a bcrypt hash starting with $2'
-          : 'Use a bcrypt hash (recommended) or at least 8 characters for local plain text passwords'
-      }
-    ),
+    .default(''),
   ADMIN_JWT_SECRET: z.string().default('dev-secret-key-change-in-production-min-32-chars').refine(
     (val) => val.length >= 32,
     { message: 'ADMIN_JWT_SECRET must be at least 32 characters long' }
