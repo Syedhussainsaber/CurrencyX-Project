@@ -45,7 +45,7 @@ export async function proxy(request: NextRequest) {
 
   const isAuthenticated = await verifyToken(token, JWT_SECRET)
   const isLogin = pathname.startsWith('/admin/login')
-
+  
   // Case 1: Not Logged In + Trying to access protected Admin Route -> Redirect to Login
   if (!isAuthenticated && !isLogin) {
     const loginUrl = new URL('/admin/login', request.url)

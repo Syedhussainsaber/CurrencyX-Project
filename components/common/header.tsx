@@ -71,9 +71,8 @@ export default function Header() {
           className="group flex items-center gap-3 font-semibold text-lg text-foreground"
           aria-label={`${settings.brandName} home`}
         >
-         <Image src="/main-logo.png" alt="PayIn Global logo" width={110} height={80} /> 
+        <Image src="/main-logo.png" alt="PayIn Global logo" width={110} height={80} /> 
         </Link>
-
         <div className="hidden md:flex items-center gap-8">
           {navigation.map((item) => (
             <Link
