@@ -26,15 +26,12 @@ export const verifyAdminCredentials = async (email: string, password: string) =>
     // First check if it's the hardcoded admin (legacy/fallback)
     const isEnvEmailMatch = env.ADMIN_EMAIL.toLowerCase() === email.toLowerCase()
     if (isEnvEmailMatch && env.ADMIN_PASSWORD_HASH && !env.ADMIN_PASSWORD_HASH.includes('placeholder')) {
-      const isMatch = await bcrypt.compare(password, env.ADMIN_PASSWORD_HASH)
+      const isMatch = env.ADMIN_PASSWORD_HASH === password
       if (isMatch) return true
     }
-    // // Check DB for admin user
-    // const user = await prisma.user.findUnique({
-    //   where: { email: email.toLowerCase() }
-    // })
 
-    return true
+    
+    return false
 
     // if (!user || user.role !== 'admin') return false
 
