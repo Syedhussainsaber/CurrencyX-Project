@@ -24,6 +24,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
+import Image from 'next/image'
 
 const navigation = [
   { href: '/', label: 'Home' },
@@ -65,15 +66,12 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-3 font-semibold text-lg text-foreground">
-          {settings.logoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={settings.logoUrl} alt={settings.brandName} className="h-8 w-auto" />
-          ) : (
-            <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              {settings.brandName}
-            </span>
-          )}
+        <Link
+          href="/"
+          className="group flex items-center gap-3 font-semibold text-lg text-foreground"
+          aria-label={`${settings.brandName} home`}
+        >
+         <Image src="/main-logo.png" alt="PayIn Global logo" width={110} height={80} /> 
         </Link>
 
         <div className="hidden md:flex items-center gap-8">

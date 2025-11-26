@@ -50,8 +50,13 @@ export default async function RootLayout({
       <head>
         <meta name="theme-color" content={settings.primaryColor} />
         <link rel="manifest" href="/manifest.json" />
-        <link rel="apple-touch-icon" href="/apple-icon.png" />
-        {settings.faviconUrl && <link rel="icon" href={settings.faviconUrl} />}
+        <link rel="icon" type="image/png" sizes="196x196" href="/main-logo.png" />
+        {/* Theme-aware high-res favicons */}
+        {/* <link rel="icon" type="image/png" sizes="196x196" href="/main-icon.png" media="(prefers-color-scheme: light)" />
+        <link rel="icon" type="image/png" sizes="196x196" href="/main-icon-dark.png" media="(prefers-color-scheme: dark)" /> */}
+        {/* Apple / fallback icons */}
+        <link rel="apple-touch-icon" sizes="180x180" href="/main-icon.png" />
+        {/* <link rel="icon" href={settings.faviconUrl || '/payinglobal_icon.png'} /> */}
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>

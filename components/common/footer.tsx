@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Facebook, Linkedin, Twitter, Instagram } from 'lucide-react'
 
 import { useSiteSettings } from '@/components/site-settings-provider'
+import Image from 'next/image'
 
 const socials = [
   { icon: Twitter, key: 'twitter' as const },
@@ -19,8 +20,10 @@ export default function Footer() {
     <footer className="bg-card border-t border-border mt-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-10">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div>
-            <p className="text-lg font-semibold">{settings.brandName}</p>
+         
+
+          <div className='flex flex-col gap-2 items-start'>
+             <Image src="/main-logo.png" alt="PayIn Global logo" width={110} height={80} /> 
             <p className="text-sm text-muted-foreground mt-2">{settings.metaDescription}</p>
           </div>
 

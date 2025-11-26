@@ -22,20 +22,26 @@ export type TokenPayload = AdminTokenPayload | UserTokenPayload
 
 export const verifyAdminCredentials = async (email: string, password: string) => {
   try {
-    const env = getServerEnv();
+    const env = getServerEnv()
+    const normalizedEmail = email.toLowerCase()
+    const storedEnvPassword = env.ADMIN_PASSWORD_HASH.trim()
+
     // First check if it's the hardcoded admin (legacy/fallback)
-    const isEnvEmailMatch = env.ADMIN_EMAIL.toLowerCase() === email.toLowerCase()
-    if (isEnvEmailMatch && env.ADMIN_PASSWORD_HASH && !env.ADMIN_PASSWORD_HASH.includes('placeholder')) {
-      const isMatch = env.ADMIN_PASSWORD_HASH === password
+    const isEnvEmailMatch = env.ADMIN_EMAIL.toLowerCase() === normalizedEmail
+    if (isEnvEmailMatch && storedEnvPassword && !storedEnvPassword.includes('placeholder')) {
+      const isHash = storedEnvPassword.startsWith('$2')
+      const isMatch = isHash ? await bcrypt.compare(password, storedEnvPassword) : storedEnvPassword === password
       if (isMatch) return true
     }
 
-    
-    return false
+    // Fallback: check persisted admin users
+    const adminUser = await prisma.user.findFirst({
+      where: { email: normalizedEmail, role: 'admin' }
+    })
 
-    // if (!user || user.role !== 'admin') return false
+    if (!adminUser) return false
 
-    // return await bcrypt.compare(password, user.password)
+    return await bcrypt.compare(password, adminUser.password)
   } catch (error) {
     console.error('[auth] Error verifying admin credentials', error)
     return false

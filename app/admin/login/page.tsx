@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import Image from 'next/image'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -58,9 +59,30 @@ export default function AdminLogin() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background/60 via-card to-background flex items-center justify-center p-4">
-      <div className="bg-card border border-border rounded-2xl p-8 w-full max-w-md shadow-xl">
-        <h1 className="text-3xl font-semibold mb-2">PayIn Global Admin</h1>
-        <p className="text-muted-foreground mb-8">Authenticate to manage content, rates, and settings.</p>
+      <div className="w-full max-w-md rounded-3xl border border-border/70 bg-card/80 p-8 shadow-[0_20px_60px_-30px_rgba(0,0,0,0.8)] backdrop-blur-xl">
+        <div className="mb-8 flex flex-col items-center text-center">
+          <div className="relative mb-4 h-16 w-16">
+            <Image
+              src="/main-icon.png"
+              alt="PayIn Global logo"
+              fill
+              sizes="64px"
+              className="rounded-2xl object-contain dark:hidden"
+              priority
+            />
+            <Image
+              src="/main-icon-dark.png"
+              alt="PayIn Global logo"
+              fill
+              sizes="64px"
+              className="hidden rounded-2xl object-contain dark:block"
+            />
+          </div>
+          <h1 className="text-3xl font-semibold">PayIn Global Admin</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Authenticate to manage content, rates, and mission-critical settings.
+          </p>
+        </div>
 
         {error && (
           <div className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
@@ -96,9 +118,12 @@ export default function AdminLogin() {
           </Button>
         </form>
 
-        <p className="text-center text-xs text-muted-foreground mt-6">
-          Set <code>ADMIN_EMAIL</code> and <code>ADMIN_PASSWORD_HASH</code> in your environment.
-        </p>
+        <div className="mt-8 rounded-2xl border border-dashed border-primary/30 bg-primary/5 px-4 py-3 text-center text-xs text-muted-foreground">
+          <p>
+            Tip: configure <code>ADMIN_EMAIL</code> and <code>ADMIN_PASSWORD_HASH</code> (hash or plain text locally) in{' '}
+            <code>.env</code>.
+          </p>
+        </div>
       </div>
     </div>
   )

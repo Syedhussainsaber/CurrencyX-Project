@@ -2,6 +2,7 @@ import Header from '@/components/common/header'
 import Footer from '@/components/common/footer'
 import { getSiteSettings } from '@/lib/site'
 import prisma from '@/lib/prisma'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 
 const milestones = [
   { year: '2018', detail: 'PayIn Global launches with 20 currencies and instant FX alerts.' },
@@ -79,13 +80,30 @@ export default async function AboutPage() {
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="text-3xl font-semibold text-center mb-12">Team</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {teamMembers.map((member) => (
-                <div key={member.fullName} className="bg-card border border-border rounded-2xl p-6 text-center">
-                  <div className="w-16 h-16 rounded-full mx-auto bg-primary/10 mb-4" />
-                  <p className="font-semibold">{member.fullName}</p>
-                  <p className="text-sm text-muted-foreground">{member.role}</p>
-                </div>
-              ))}
+              {teamMembers.map((member) => {
+                const initials = member.fullName
+                  .split(' ')
+                  .map((n) => n[0])
+                  .slice(0, 2)
+                  .join('')
+                const role = member.role || 'Team Member'
+                return (
+                  <div key={member.fullName} className="bg-card border border-border rounded-2xl p-6 text-center">
+                    <Avatar className="mx-auto size-16 mb-4">
+                      {/* If a user image exists, set src here; fallback shows theme-aware icon */}
+                      {false ? (
+                        <AvatarImage src="" alt={member.fullName} />
+                      ) : null}
+                      <AvatarFallback>
+                        <img src="/main-icon.png" alt="PayIn Global" className="h-6 w-6 dark:hidden" />
+                        <img src="/main-icon-dark.png" alt="PayIn Global" className="h-6 w-6 hidden dark:block" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <p className="font-semibold">{member.fullName}</p>
+                    <p className="text-sm text-muted-foreground mt-1">{role}</p>
+                  </div>
+                )
+              })}
             </div>
           </div>
         </section>
